@@ -112,18 +112,6 @@ export function Sidebar() {
             )
           })}
         </nav>
-
-        {!isDevMode && (
-          <div className="mt-4 p-3 rounded-lg bg-primary-50/70 border border-primary-100 text-[11px] text-primary-800 space-y-1">
-            <div className="font-semibold flex items-center gap-1.5">
-              <Sparkles className="size-3.5 text-primary-600" />
-              Mode Terapi Aktif
-            </div>
-            <p className="text-[10.5px] text-primary-700/90 leading-tight">
-              Tampilan difokuskan untuk latihan pasien. Aktifkan Dev Mode di bawah untuk melihat seluruh menu klinik.
-            </p>
-          </div>
-        )}
       </div>
 
       <div className="p-4 border-t border-border space-y-3">
@@ -157,21 +145,6 @@ export function Sidebar() {
                 `}
               />
             </button>
-          </div>
-
-          <div className="flex items-center justify-between text-[10px]">
-            <span className="text-muted-foreground">
-              {isDevMode ? 'Semua Menu Terbuka' : 'Hanya Sesi Terapi'}
-            </span>
-            <span
-              className={`px-1.5 py-0.2 rounded font-semibold text-[9px] uppercase tracking-wider ${
-                isDevMode
-                  ? 'bg-amber-100 text-amber-800'
-                  : 'bg-emerald-100 text-emerald-800'
-              }`}
-            >
-              {isDevMode ? 'Full Access' : 'Kiosk'}
-            </span>
           </div>
         </div>
 

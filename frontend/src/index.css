@@ -1,0 +1,115 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Background utama aplikasi - Rukana desa-background (#F2F9F6) */
+    --background: 154 37% 96%;
+    /* Teks judul utama & headline - Rukana desa-black (#001B1A) */
+    --foreground: 178 100% 5%;
+
+    /* Card background - Pure White (#FFFFFF) */
+    --card: 0 0% 100%;
+    --card-foreground: 178 100% 5%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 178 100% 5%;
+
+    /* Primary brand color - Rukana desa-dark-green (#34613A) */
+    --primary: 128 30% 29%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary / Subtitle text - Rukana desa-secondary (#5A7A7E) */
+    --secondary: 187 17% 42%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted & Accent - Rukana desa-foreshadow (#F1FAE6) */
+    --muted: 87 67% 94%;
+    --muted-foreground: 187 17% 42%;
+
+    --accent: 87 67% 94%;
+    --accent-foreground: 128 30% 29%;
+
+    /* Destructive / Error - Rukana desa-red (#FF5070) */
+    --destructive: 349 100% 66%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Border & Input - Rukana desa-grey (#DBDBDB) */
+    --border: 0 0% 86%;
+    --input: 0 0% 86%;
+    --ring: 128 30% 29%;
+
+    --radius: 0.75rem;
+
+    /* Semantic helpers */
+    --success: 87 44% 54%;                 /* #8EBD55 - desa-soft-green */
+    --warning: 34 96% 64%;                 /* #FBAD4A - desa-yellow */
+    --info: 208 100% 33%;                  /* #005CAA - desa-blue */
+  }
+
+  .dark {
+    --background: 178 100% 5%;             /* #001B1A */
+    --foreground: 154 37% 96%;             /* #F2F9F6 */
+
+    --card: 178 60% 8%;
+    --card-foreground: 154 37% 96%;
+
+    --popover: 178 60% 8%;
+    --popover-foreground: 154 37% 96%;
+
+    --primary: 87 44% 54%;                 /* #8EBD55 - soft green for dark mode */
+    --primary-foreground: 178 100% 5%;
+
+    --secondary: 187 17% 55%;              /* #5A7A7E lighter */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 128 30% 15%;
+    --muted-foreground: 187 17% 70%;
+
+    --accent: 128 30% 15%;
+    --accent-foreground: 87 44% 54%;
+
+    --destructive: 349 100% 66%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 178 20% 20%;
+    --input: 178 20% 20%;
+    --ring: 87 44% 54%;
+
+    --success: 87 44% 54%;
+    --warning: 34 96% 64%;
+    --info: 208 100% 50%;
+  }
+}
+
+@layer utilities {
+  .gradient-vertical {
+    background: linear-gradient(209.83deg, #89b854 1.15%, #042f2b 100%);
+  }
+
+  .gradient-horizontal {
+    background: linear-gradient(272.68deg, #89b854 0%, #042f2b 100%);
+  }
+
+  .gradient-primary {
+    background: linear-gradient(135deg, #89b854 0%, #34613a 100%);
+  }
+
+  .hide-scrollbar {
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Lexend Deca', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+}

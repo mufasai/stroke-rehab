@@ -1,7 +1,52 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Hands, HAND_CONNECTIONS, VERSION } from '@mediapipe/hands'
-import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils'
-import { Camera } from '@mediapipe/camera_utils'
+import * as HandsModule from '@mediapipe/hands'
+import * as DrawingUtils from '@mediapipe/drawing_utils'
+import * as CameraUtils from '@mediapipe/camera_utils'
+
+/**
+ * Safely resolves MediaPipe objects from either window global (preferred in production via CDN)
+ * or bundled modules, avoiding Vite CommonJS/Closure compiler scoping bugs.
+ */
+function getMediaPipe() {
+  const HandsClass =
+    (typeof window !== 'undefined' && window.Hands) ||
+    HandsModule.Hands ||
+    HandsModule.default?.Hands
+
+  const CameraClass =
+    (typeof window !== 'undefined' && window.Camera) ||
+    CameraUtils.Camera ||
+    CameraUtils.default?.Camera
+
+  const drawConnectorsFn =
+    (typeof window !== 'undefined' && window.drawConnectors) ||
+    DrawingUtils.drawConnectors ||
+    DrawingUtils.default?.drawConnectors
+
+  const drawLandmarksFn =
+    (typeof window !== 'undefined' && window.drawLandmarks) ||
+    DrawingUtils.drawLandmarks ||
+    DrawingUtils.default?.drawLandmarks
+
+  const connections =
+    (typeof window !== 'undefined' && window.HAND_CONNECTIONS) ||
+    HandsModule.HAND_CONNECTIONS ||
+    HandsModule.default?.HAND_CONNECTIONS
+
+  const version =
+    (typeof window !== 'undefined' && window.VERSION) ||
+    HandsModule.VERSION ||
+    '0.4.1675469240'
+
+  return {
+    HandsClass,
+    CameraClass,
+    drawConnectorsFn,
+    drawLandmarksFn,
+    connections,
+    version,
+  }
+}
 
 /**
  * Custom hook to initialize MediaPipe Hands, webcam video stream,
@@ -59,80 +104,91 @@ export function useMediaPipeHands({
   useEffect(() => {
     let isMounted = true
 
-    const hands = new Hands({
-      locateFile: (file) =>
-        `https://cdn.jsdelivr.net/npm/@mediapipe/hands@${VERSION}/${file}`,
-    })
+    const { HandsClass, version, drawConnectorsFn, drawLandmarksFn, connections } = getMediaPipe()
 
-    hands.setOptions({
-      maxNumHands: 1,
-      modelComplexity: 1,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5,
-    })
+    if (!HandsClass) {
+      console.warn('Modul MediaPipe Hands belum siap atau sedang diunduh.')
+      return
+    }
 
-    hands.onResults((results) => {
-      if (!isMounted) return
+    try {
+      const hands = new HandsClass({
+        locateFile: (file) =>
+          `https://cdn.jsdelivr.net/npm/@mediapipe/hands@${version}/${file}`,
+      })
 
-      // Calculate real-time FPS
-      const now = performance.now()
-      frameCountRef.current += 1
-      const elapsed = now - lastTimeRef.current
-      if (elapsed >= 1000) {
-        setFps(Math.round((frameCountRef.current * 1000) / elapsed))
-        frameCountRef.current = 0
-        lastTimeRef.current = now
-      }
+      hands.setOptions({
+        maxNumHands: 1,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5,
+      })
 
-      // Draw landmarks onto overlay canvas
-      const canvas = canvasRef?.current
-      const video = videoRef?.current
+      hands.onResults((results) => {
+        if (!isMounted) return
 
-      if (canvas && video) {
-        if (video.videoWidth && canvas.width !== video.videoWidth) {
-          canvas.width = video.videoWidth
-          canvas.height = video.videoHeight
+        // Calculate real-time FPS
+        const now = performance.now()
+        frameCountRef.current += 1
+        const elapsed = now - lastTimeRef.current
+        if (elapsed >= 1000) {
+          setFps(Math.round((frameCountRef.current * 1000) / elapsed))
+          frameCountRef.current = 0
+          lastTimeRef.current = now
         }
 
-        const ctx = canvas.getContext('2d')
-        if (ctx) {
-          ctx.save()
-          ctx.clearRect(0, 0, canvas.width, canvas.height)
+        // Draw landmarks onto overlay canvas
+        const canvas = canvasRef?.current
+        const video = videoRef?.current
 
-          if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-            const landmarks = results.multiHandLandmarks[0]
-
-            if (showLandmarksRef.current) {
-              drawConnectors(ctx, landmarks, HAND_CONNECTIONS, {
-                color: '#34613A',
-                lineWidth: 3,
-              })
-              drawLandmarks(ctx, landmarks, {
-                color: '#8EBD55',
-                lineWidth: 1,
-                radius: 4,
-              })
-            }
-
-            // Deliver detected landmarks to parent listener
-            if (onResultsRef.current) {
-              onResultsRef.current(landmarks, results)
-            }
-          } else {
-            // Hand not detected
-            if (onResultsRef.current) {
-              onResultsRef.current(null, results)
-            }
+        if (canvas && video) {
+          if (video.videoWidth && canvas.width !== video.videoWidth) {
+            canvas.width = video.videoWidth
+            canvas.height = video.videoHeight
           }
 
-          ctx.restore()
-        }
-      }
-    })
+          const ctx = canvas.getContext('2d')
+          if (ctx) {
+            ctx.save()
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    handsRef.current = hands
-    setIsModelLoaded(true)
-    refreshCameras()
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+              const landmarks = results.multiHandLandmarks[0]
+
+              if (showLandmarksRef.current && drawConnectorsFn && drawLandmarksFn && connections) {
+                drawConnectorsFn(ctx, landmarks, connections, {
+                  color: '#34613A',
+                  lineWidth: 3,
+                })
+                drawLandmarksFn(ctx, landmarks, {
+                  color: '#8EBD55',
+                  lineWidth: 1,
+                  radius: 4,
+                })
+              }
+
+              // Deliver detected landmarks to parent listener
+              if (onResultsRef.current) {
+                onResultsRef.current(landmarks, results)
+              }
+            } else {
+              // Hand not detected
+              if (onResultsRef.current) {
+                onResultsRef.current(null, results)
+              }
+            }
+
+            ctx.restore()
+          }
+        }
+      })
+
+      handsRef.current = hands
+      setIsModelLoaded(true)
+      refreshCameras()
+    } catch (initErr) {
+      console.error('Error saat inisialisasi MediaPipe Hands:', initErr)
+    }
 
     return () => {
       isMounted = false
@@ -152,12 +208,18 @@ export function useMediaPipeHands({
     const video = videoRef?.current
     if (!video || !handsRef.current) return
 
+    const { CameraClass } = getMediaPipe()
+    if (!CameraClass) {
+      setCameraError('Modul Camera MediaPipe belum siap.')
+      return
+    }
+
     try {
       if (cameraRef.current) {
         cameraRef.current.stop()
       }
 
-      const camera = new Camera(video, {
+      const camera = new CameraClass(video, {
         onFrame: async () => {
           if (isProcessingRef.current) return
           if (videoRef?.current && handsRef.current) {

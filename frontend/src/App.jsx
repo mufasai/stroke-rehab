@@ -1,14 +1,17 @@
 import { BrowserRouter } from 'react-router-dom'
 import { MainLayout } from './components/layout/MainLayout'
+import { ErrorBoundary } from './components/common/ErrorBoundary'
 import AppRoutes from './routes/AppRoutes'
 
 function App() {
   return (
-    <BrowserRouter>
-      <MainLayout>
-        <AppRoutes />
-      </MainLayout>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <MainLayout>
+          <AppRoutes />
+        </MainLayout>
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }
 

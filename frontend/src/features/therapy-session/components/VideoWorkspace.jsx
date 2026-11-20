@@ -161,7 +161,7 @@ export function VideoWorkspace({
             title="Ubah arah kamera antara invers (cermin) atau kamera normal"
           >
             <FlipHorizontal className="size-3.5" />
-            <span>{isMirrored ? 'Invers (Cermin ON)' : 'Normal (Cermin OFF)'}</span>
+            <span>{isMirrored ? 'Invers' : 'Normal'}</span>
           </button>
 
           <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground">

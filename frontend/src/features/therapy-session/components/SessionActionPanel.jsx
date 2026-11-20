@@ -1,11 +1,19 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import { Pause, Play, XCircle, CheckCheck, Crosshair } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import {
+  Play,
+  Pause,
+  CheckCheck,
+  XCircle,
+  Crosshair,
+  Sliders,
+} from 'lucide-react'
 
 export function SessionActionPanel({
-  therapistNotes = '',
-  onChangeNotes = () => {},
   sessionStatus = 'ready',
+  currentReps = 0,
+  targetRepetitions = 10,
   onStartSession = () => {},
   onCalibrate = () => {},
   onTogglePause = () => {},
@@ -14,98 +22,138 @@ export function SessionActionPanel({
 }) {
   const isReady = sessionStatus === 'ready'
   const isPaused = sessionStatus === 'paused'
+  const isRunning = sessionStatus === 'running'
+
+  const handleCancelClick = () => {
+    if (currentReps > 0) {
+      const confirmReset = window.confirm(
+        `Terdapat ${currentReps} repetisi yang sudah tercatat. Apakah Anda yakin ingin membatalkan dan mengulang sesi ini dari awal?`
+      )
+      if (confirmReset) {
+        onCancel()
+      }
+    } else {
+      onCancel()
+    }
+  }
 
   return (
-    <div className="space-y-3">
-      {/* Therapist Observation Notes */}
-      <div className="space-y-1.5">
-        <label
-          htmlFor="therapist-notes"
-          className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block"
-        >
-          Catatan Observasi Fisioterapis
-        </label>
-        <textarea
-          id="therapist-notes"
-          value={therapistNotes}
-          onChange={(e) => onChangeNotes(e.target.value)}
-          placeholder="Ketik catatan klinis spontan (contoh: Pasien mulai menunjukkan kelelahan pada repetisi ke-6)..."
-          rows={3}
-          className="w-full text-xs rounded-lg border border-input bg-background p-2.5 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500 resize-none"
-        />
+    <div className="bg-card border-2 border-primary-500/30 rounded-xl p-4 shadow-sm space-y-3 bg-gradient-to-b from-card via-card to-primary-50/15">
+      {/* Header Panel Kontrol */}
+      <div className="flex items-center justify-between border-b border-border/70 pb-2.5">
+        <div className="flex items-center gap-2">
+          <div className="size-6 rounded-md bg-primary-100 text-primary-700 flex items-center justify-center">
+            <Sliders className="size-3.5" />
+          </div>
+          <span className="text-xs font-bold uppercase tracking-wider text-foreground">
+            Kontrol Utama Sesi
+          </span>
+        </div>
+
+        {isReady && (
+          <Badge variant="outline" className="text-[11px] font-semibold text-slate-600 bg-slate-100 border-slate-300">
+            Siap Dimulai
+          </Badge>
+        )}
+        {isRunning && (
+          <Badge className="text-[11px] font-semibold bg-emerald-600 text-white flex items-center gap-1.5 shadow-xs">
+            <span className="size-1.5 rounded-full bg-white animate-ping" />
+            Latihan Berjalan
+          </Badge>
+        )}
+        {isPaused && (
+          <Badge className="text-[11px] font-semibold bg-amber-500 text-white flex items-center gap-1 shadow-xs">
+            <Pause className="size-2.5" />
+            Sesi Dijeda
+          </Badge>
+        )}
       </div>
 
-      {/* Action Buttons */}
-      <div className="space-y-2">
-        {isReady ? (
+      {/* Control Buttons Area */}
+      {isReady ? (
+        <div className="space-y-2 pt-1">
           <Button
             type="button"
             size="lg"
             onClick={onStartSession}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-sm"
+            className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-transform active:scale-[0.99]"
           >
-            <Play className="h-4 w-4 mr-2 fill-white" />
-            Mulai Hitung Latihan (Kunci Posisi Lurus)
+            <Play className="size-4 fill-white shrink-0" />
+            <span>Mulai Hitung Latihan (Set 0°)</span>
           </Button>
-        ) : (
-          <>
-            {/* Primary Action Button placed prominently at top of controls */}
+          <p className="text-[11px] text-muted-foreground text-center leading-relaxed px-1">
+            Letakkan telapak tangan lurus di depan webcam, lalu klik tombol di atas untuk memulai penghitungan otomatis 10 repetisi.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2.5 pt-1">
+          {/* Primary Action Button: Simpan & Selesai Terapi */}
+          <Button
+            type="button"
+            size="lg"
+            onClick={onFinish}
+            className="w-full h-11 bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm shadow-md flex items-center justify-between px-4 transition-transform active:scale-[0.99]"
+          >
+            <div className="flex items-center gap-2">
+              <CheckCheck className="size-4 shrink-0" />
+              <span>Simpan & Selesai Terapi</span>
+            </div>
+            <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs font-mono font-semibold">
+              {currentReps}/{targetRepetitions} Repetisi
+            </span>
+          </Button>
+
+          {/* Secondary Controls: Jeda/Lanjut and Batal/Ulangi */}
+          <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
-              size="lg"
-              onClick={onFinish}
-              className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm shadow-md h-11 flex items-center justify-center gap-2"
+              variant="outline"
+              size="sm"
+              onClick={onTogglePause}
+              className={`text-xs h-9 font-semibold border ${
+                isPaused
+                  ? 'bg-amber-500 hover:bg-amber-600 text-white border-amber-600 shadow-xs'
+                  : 'text-foreground hover:bg-secondary-50 border-input'
+              }`}
             >
-              <CheckCheck className="h-4 w-4" />
-              Simpan & Selesai Terapi
+              {isPaused ? (
+                <>
+                  <Play className="size-3.5 mr-1.5 fill-white" />
+                  Lanjutkan Sesi
+                </>
+              ) : (
+                <>
+                  <Pause className="size-3.5 mr-1.5 text-amber-600" />
+                  Jeda Sesi
+                </>
+              )}
             </Button>
 
             <Button
               type="button"
               variant="outline"
               size="sm"
-              onClick={onCalibrate}
-              className="w-full text-xs h-9 font-semibold border-primary-300 text-primary-700 hover:bg-primary-50"
+              onClick={handleCancelClick}
+              className="text-xs h-9 font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
             >
-              <Crosshair className="h-3.5 w-3.5 mr-1.5" />
-              Kalibrasi Posisi Lurus (Set 0°)
+              <XCircle className="size-3.5 mr-1.5 text-rose-500" />
+              Batal / Ulangi
             </Button>
+          </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={onTogglePause}
-                className="text-xs h-9 font-semibold"
-              >
-                {isPaused ? (
-                  <>
-                    <Play className="h-3.5 w-3.5 mr-1.5 text-emerald-600 fill-emerald-600" />
-                    Lanjutkan
-                  </>
-                ) : (
-                  <>
-                    <Pause className="h-3.5 w-3.5 mr-1.5 text-secondary-600" />
-                    Jeda Sesi
-                  </>
-                )}
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={onCancel}
-                className="text-xs h-9 font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
-              >
-                <XCircle className="h-3.5 w-3.5 mr-1.5" />
-                Ulangi Sesi
-              </Button>
-            </div>
-          </>
-        )}
-      </div>
+          {/* Neutral Re-Calibration Button */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onCalibrate}
+            className="w-full text-xs h-8 text-primary-700 hover:text-primary-800 hover:bg-primary-50 font-medium border border-dashed border-primary-200"
+          >
+            <Crosshair className="size-3.5 mr-1.5 text-primary-600" />
+            Kalibrasi Ulang Posisi Lurus (Set 0°)
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

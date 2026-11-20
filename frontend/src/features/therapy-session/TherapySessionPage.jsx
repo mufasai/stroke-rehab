@@ -8,6 +8,7 @@ import { QualityStatusCard } from './components/QualityStatusCard'
 import { RepetitionTracker } from './components/RepetitionTracker'
 import { CompensationMonitor } from './components/CompensationMonitor'
 import { SessionActionPanel } from './components/SessionActionPanel'
+import { TherapistNotesCard } from './components/TherapistNotesCard'
 import { SessionSummaryModal } from './components/SessionSummaryModal'
 import { useMediaPipeHands } from './hooks/useMediaPipeHands'
 import { useTherapySession } from './hooks/useTherapySession'
@@ -143,7 +144,7 @@ export default function TherapySessionPage() {
         </div>
       )}
 
-      {/* 1. Header Sesi Terpadu */}
+      {/* 1. Header Sesi Terpadu (Lengkap dengan Quick Actions di Baris Atas) */}
       <SessionHeaderBar
         patientName={session.patientData.name}
         rmNumber={session.patientData.id}
@@ -153,13 +154,12 @@ export default function TherapySessionPage() {
         latencyMs={camera.latencyMs}
         isCameraActive={camera.isCameraActive}
         sessionStatus={session.sessionStatus}
-        onFinish={session.finishSessionEarly}
         currentReps={session.currentReps}
         targetReps={session.targetRepetitions}
-        cameraName={
-          camera.availableCameras.find((c) => c.deviceId === selectedCameraId)?.label ||
-          'Webcam Meja USB (Top-Down 90°)'
-        }
+        onStartSession={session.startSession}
+        onTogglePause={session.togglePause}
+        onCancel={session.resetSession}
+        onFinish={session.finishSessionEarly}
       />
 
       {/* 2. Workspace Utama (Dua Kolom: 62% Kamera vs 38% Metrik & Kontrol) */}
@@ -193,8 +193,21 @@ export default function TherapySessionPage() {
           />
         </div>
 
-        {/* Kolom Kanan: Panel Metrik, Repetisi, dan Kontrol Klinis (5 Kolom Grid) */}
+        {/* Kolom Kanan: Panel Kontrol Klinis & Metrik Real-Time (5 Kolom Grid) */}
         <div className="xl:col-span-5 space-y-3">
+          {/* Kontrol Utama Sesi (Ditempatkan di Posisi Paling Atas Sejajar Kamera) */}
+          <SessionActionPanel
+            sessionStatus={session.sessionStatus}
+            currentReps={session.currentReps}
+            targetRepetitions={session.targetRepetitions}
+            onStartSession={session.startSession}
+            onCalibrate={session.calibrateNeutralPosition}
+            onTogglePause={session.togglePause}
+            onCancel={session.resetSession}
+            onFinish={session.finishSessionEarly}
+          />
+
+          {/* Status Kualitas & Fase Gerakan */}
           <QualityStatusCard
             quality={session.liveMetrics.quality}
             sessionStatus={session.sessionStatus}
@@ -202,6 +215,7 @@ export default function TherapySessionPage() {
             holdProgress={session.holdProgress}
           />
 
+          {/* Pengukur Rentang Gerak (ROM) Bukaan Jari */}
           <ROMGaugeCard
             romValue={session.liveMetrics.romValue}
             targetRom={session.liveMetrics.targetRom}
@@ -210,12 +224,14 @@ export default function TherapySessionPage() {
             exerciseType="finger_spread"
           />
 
+          {/* Target & Riwayat 10 Repetisi */}
           <RepetitionTracker
             currentReps={session.currentReps}
             targetReps={session.targetRepetitions}
             history={session.repetitionHistory}
           />
 
+          {/* Monitor Kompensasi Sudut & Simetri */}
           <CompensationMonitor
             wristDeviation={session.liveMetrics.wristDeviation}
             maxWristThreshold={calibConfig.maxWristDeviation || 25}
@@ -223,15 +239,10 @@ export default function TherapySessionPage() {
             history={session.repetitionHistory}
           />
 
-          <SessionActionPanel
-            therapistNotes={session.therapistNotes}
+          {/* Catatan Observasi Fisioterapis */}
+          <TherapistNotesCard
+            notes={session.therapistNotes}
             onChangeNotes={session.setTherapistNotes}
-            sessionStatus={session.sessionStatus}
-            onStartSession={session.startSession}
-            onCalibrate={session.calibrateNeutralPosition}
-            onTogglePause={session.togglePause}
-            onCancel={session.resetSession}
-            onFinish={session.finishSessionEarly}
           />
         </div>
       </div>

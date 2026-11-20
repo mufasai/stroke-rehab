@@ -48,6 +48,7 @@ export function useTherapySession({
   exerciseType = 'finger_spread',
   targetRepetitions = 10,
   audioFeedbackEnabled = true,
+  onCaptureSnapshot = null,
   patientData = {
     id: 'RM-2024-089',
     name: 'Tn. Budi Santoso',
@@ -294,11 +295,22 @@ export function useTherapySession({
             const completedRepNumber = currentRepsRef.current + 1
             currentRepsRef.current = completedRepNumber
 
+            // Capture webcam & skeleton snapshot at the peak ROM moment
+            let capturedSnapshot = null
+            if (typeof onCaptureSnapshot === 'function') {
+              try {
+                capturedSnapshot = onCaptureSnapshot()
+              } catch (snapErr) {
+                console.warn('Gagal menangkap snapshot repetisi:', snapErr)
+              }
+            }
+
             const finalRepRecord = {
               repNumber: completedRepNumber,
               quality: finalQuality,
               romValue: state.bestRomInRep,
               wristDeviation: smoothedWristDev,
+              snapshotUrl: capturedSnapshot,
               timestamp: new Date().toLocaleTimeString('id-ID', {
                 hour: '2-digit',
                 minute: '2-digit',

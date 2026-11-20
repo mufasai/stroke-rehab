@@ -1,16 +1,37 @@
-import React, { useState, useMemo } from 'react'
-import { INITIAL_HISTORY_SESSIONS } from './data/mockSessions'
+import React, { useState, useMemo, useEffect } from 'react'
+import { getStoredTherapySessions } from '@/services/sessionStorage'
 import { HistoryStatsCards } from './components/HistoryStatsCards'
 import { HistoryFilterBar } from './components/HistoryFilterBar'
 import { HistoryTable } from './components/HistoryTable'
 import { SessionDetailModal } from './components/SessionDetailModal'
 
 export default function HistoryPage() {
-  const [sessions] = useState(INITIAL_HISTORY_SESSIONS)
+  const [sessions, setSessions] = useState(getStoredTherapySessions)
   const [selectedSession, setSelectedSession] = useState(null)
-  const [dateRange, setDateRange] = useState('1 Mar 2024 - 28 Mar 2024')
+  const [dateRange, setDateRange] = useState('Semua Tanggal')
   const [patientFilter, setPatientFilter] = useState('ALL')
   const [protocolFilter, setProtocolFilter] = useState('ALL')
+
+  useEffect(() => {
+    const handleSync = () => {
+      setSessions(getStoredTherapySessions())
+    }
+    window.addEventListener('stroke_therapy_session_saved', handleSync)
+    window.addEventListener('storage', handleSync)
+    return () => {
+      window.removeEventListener('stroke_therapy_session_saved', handleSync)
+      window.removeEventListener('storage', handleSync)
+    }
+  }, [])
+
+  // Aggregate clinical metrics dynamically from loaded sessions
+  const stats = useMemo(() => {
+    const totalSessions = sessions.length
+    const totalRepetitions = sessions.reduce((acc, s) => acc + (s.totalReps || 0), 0)
+    const correctRepetitions = sessions.reduce((acc, s) => acc + (s.correctReps || 0), 0)
+    const compensatoryRepetitions = sessions.reduce((acc, s) => acc + (s.compensatoryReps || 0), 0)
+    return { totalSessions, totalRepetitions, correctRepetitions, compensatoryRepetitions }
+  }, [sessions])
 
   // Filtered session records
   const filteredSessions = useMemo(() => {
@@ -87,10 +108,10 @@ export default function HistoryPage() {
 
       {/* 4 Summary Stat Cards */}
       <HistoryStatsCards
-        totalSessions={48}
-        totalRepetitions={480}
-        correctRepetitions={412}
-        compensatoryRepetitions={68}
+        totalSessions={stats.totalSessions}
+        totalRepetitions={stats.totalRepetitions}
+        correctRepetitions={stats.correctRepetitions}
+        compensatoryRepetitions={stats.compensatoryRepetitions}
       />
 
       {/* Filter and Actions Bar */}

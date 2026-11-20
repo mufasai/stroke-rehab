@@ -46,7 +46,8 @@ export function HistoryFilterBar({
                 onChange={(e) => onPatientFilterChange(e.target.value)}
                 className="w-full pl-8 pr-2.5 py-1.5 text-xs rounded-lg border border-input bg-background focus:outline-none focus:ring-1 focus:ring-primary-500"
               >
-                <option value="ALL">Semua Pasien (18 Pasien Terdaftar)</option>
+                <option value="ALL">Semua Pasien</option>
+                <option value="Tn. Budi Santoso">Tn. Budi Santoso (RM-2024-089)</option>
                 <option value="Bambang Sutrisno">Bambang Sutrisno (RM-99201)</option>
                 <option value="Siti Rahmawati">Siti Rahmawati (RM-99204)</option>
                 <option value="Hendro Wijaya">Hendro Wijaya (RM-99182)</option>

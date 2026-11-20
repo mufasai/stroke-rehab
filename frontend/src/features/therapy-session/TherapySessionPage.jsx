@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { SessionHeaderBar } from './components/SessionHeaderBar'
 import { VideoWorkspace } from './components/VideoWorkspace'
 import { KinematicFeedbackBanner } from './components/KinematicFeedbackBanner'
@@ -11,8 +12,13 @@ import { SessionSummaryModal } from './components/SessionSummaryModal'
 import { useMediaPipeHands } from './hooks/useMediaPipeHands'
 import { useTherapySession } from './hooks/useTherapySession'
 import { loadCalibrationConfig } from '@/features/calibration/calibrationConfig'
+import { captureRepetitionSnapshot } from '@/lib/algorithms/snapshotCapture'
+import { saveTherapySession } from '@/services/sessionStorage'
+import { CheckCircle2, ArrowRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export default function TherapySessionPage() {
+  const navigate = useNavigate()
   const calibConfig = loadCalibrationConfig()
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
@@ -22,12 +28,19 @@ export default function TherapySessionPage() {
   )
   const [showLandmarks, setShowLandmarks] = useState(calibConfig.showLandmarks)
   const [audioEnabled, setAudioEnabled] = useState(calibConfig.audioFeedback)
+  const [savedSuccessInfo, setSavedSuccessInfo] = useState(null)
+
+  // Snapshot capturer callback invoked at each peak repetition
+  const handleCaptureSnapshot = useCallback(() => {
+    return captureRepetitionSnapshot(videoRef.current, canvasRef.current)
+  }, [])
 
   // Initialize session state machine
   const session = useTherapySession({
     exerciseType: 'finger_spread',
     targetRepetitions: 10,
     audioFeedbackEnabled: audioEnabled,
+    onCaptureSnapshot: handleCaptureSnapshot,
     patientData: {
       id: 'RM-2024-089',
       name: 'Tn. Budi Santoso',
@@ -48,13 +61,74 @@ export default function TherapySessionPage() {
   })
 
   const handleSaveToDatabase = () => {
+    if (!session.repetitionHistory || session.repetitionHistory.length === 0) {
+      alert('Belum ada gerakan latihan yang tercatat untuk disimpan.')
+      session.setIsSummaryModalOpen(false)
+      return
+    }
+
+    const saved = saveTherapySession({
+      patientData: session.patientData,
+      exerciseType: 'finger_spread',
+      exerciseName: 'Membuka Jari (Finger Spread)',
+      repetitionHistory: session.repetitionHistory,
+      therapistNotes: session.therapistNotes,
+      effectiveTargetRom: calibConfig.targetRomSpread || 0.15,
+    })
+
     session.setIsSummaryModalOpen(false)
-    alert('Data sesi terapi berhasil disimpan ke database lokal!')
     session.resetSession()
+
+    if (saved) {
+      const snapCount = saved.repetitions.filter((r) => r.snapshotUrl).length
+      setSavedSuccessInfo({
+        id: saved.id,
+        totalReps: saved.totalReps,
+        snapCount,
+      })
+    }
   }
 
   return (
     <div className="p-5 max-w-[1600px] mx-auto space-y-4">
+      {/* Toast Alert Banner if session was just saved */}
+      {savedSuccessInfo && (
+        <div className="rounded-xl bg-emerald-50 border border-emerald-300 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm animate-fade-in">
+          <div className="flex items-center gap-3">
+            <div className="size-9 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
+              <CheckCircle2 className="size-5" />
+            </div>
+            <div>
+              <div className="text-sm font-bold text-emerald-950">
+                Sesi Terapi Berhasil Disimpan ke Rekam Medis!
+              </div>
+              <p className="text-xs text-emerald-800">
+                Tercatat <strong>{savedSuccessInfo.totalReps} kali latihan</strong> dengan{' '}
+                <strong>{savedSuccessInfo.snapCount} foto snapshot bukti klinis</strong>.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={() => navigate('/history')}
+              className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold h-8"
+            >
+              Lihat di Riwayat & Laporan
+              <ArrowRight className="size-3.5 ml-1" />
+            </Button>
+            <button
+              type="button"
+              onClick={() => setSavedSuccessInfo(null)}
+              className="text-emerald-700 hover:text-emerald-950 text-xs px-2 py-1 font-bold"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 1. Header Sesi Terpadu */}
       <SessionHeaderBar
         patientName={session.patientData.name}

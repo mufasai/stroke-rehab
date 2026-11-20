@@ -23,11 +23,11 @@ export function HistoryTable({
             Data Riwayat Latihan Pasien
           </h3>
           <span className="bg-primary-50 text-primary-700 text-[10px] font-bold px-2 py-0.5 rounded border border-primary-200">
-            5 Sesi Terbaru
+            {sessions.length} Sesi Terdata
           </span>
         </div>
         <span className="text-xs text-muted-foreground font-mono">
-          Menampilkan {sessions.length} dari 48 rekaman
+          Tersimpan di Browser & Cloud
         </span>
       </div>
 
@@ -68,8 +68,13 @@ export function HistoryTable({
                         {s.avatarInitials}
                       </div>
                       <div>
-                        <div className="font-bold text-foreground">
-                          {s.patientName}
+                        <div className="font-bold text-foreground flex items-center gap-1.5">
+                          <span>{s.patientName}</span>
+                          {s.isUserRecorded && (
+                            <span className="text-[9px] bg-emerald-100 text-emerald-800 border border-emerald-300 font-semibold px-1.5 py-0.2 rounded">
+                              Sesi Baru
+                            </span>
+                          )}
                         </div>
                         <div className="text-[10px] text-muted-foreground font-mono">
                           {s.patientId} • {s.diagnosis}

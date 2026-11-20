@@ -156,6 +156,14 @@ export default function TherapySessionPage() {
     }
   }
 
+  const handleStartSession = useCallback(() => {
+    if (!camera.isCameraActive) {
+      alert('Nyalakan webcam kamera terlebih dahulu sebelum memulai latihan.')
+      return
+    }
+    session.startSession()
+  }, [camera.isCameraActive, session])
+
   return (
     <div className="p-5 max-w-[1600px] mx-auto space-y-4">
       {/* Toast Alert Banner if session was just saved */}
@@ -208,7 +216,7 @@ export default function TherapySessionPage() {
         sessionStatus={session.sessionStatus}
         currentReps={session.currentReps}
         targetReps={session.targetRepetitions}
-        onStartSession={session.startSession}
+        onStartSession={handleStartSession}
         onCalibrate={session.calibrateNeutralPosition}
         onTogglePause={session.togglePause}
         onCancel={session.resetSession}

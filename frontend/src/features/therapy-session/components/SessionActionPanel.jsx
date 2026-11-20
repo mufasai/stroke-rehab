@@ -14,6 +14,7 @@ export function SessionActionPanel({
   sessionStatus = 'ready',
   currentReps = 0,
   targetRepetitions = 10,
+  isCameraActive = true,
   onStartSession = () => {},
   onCalibrate = () => {},
   onTogglePause = () => {},
@@ -75,14 +76,26 @@ export function SessionActionPanel({
           <Button
             type="button"
             size="lg"
+            disabled={!isCameraActive}
             onClick={onStartSession}
-            className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-transform active:scale-[0.99]"
+            className={`w-full h-12 font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-transform active:scale-[0.99] ${
+              isCameraActive
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer'
+                : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60 border border-border'
+            }`}
+            title={
+              isCameraActive
+                ? 'Mulai penghitungan otomatis repetisi'
+                : 'Nyalakan kamera terlebih dahulu sebelum memulai latihan'
+            }
           >
-            <Play className="size-4 fill-white shrink-0" />
+            <Play className={`size-4 shrink-0 ${isCameraActive ? 'fill-white text-white' : 'fill-muted-foreground text-muted-foreground'}`} />
             <span>Mulai Hitung Latihan (Set 0°)</span>
           </Button>
           <p className="text-[11px] text-muted-foreground text-center leading-relaxed px-1">
-            Letakkan telapak tangan lurus di depan webcam, lalu klik tombol di atas untuk mulai menghitung repetisi.
+            {isCameraActive
+              ? 'Letakkan telapak tangan lurus di depan webcam, lalu klik tombol di atas untuk mulai menghitung repetisi.'
+              : 'Nyalakan kamera webcam terlebih dahulu untuk memulai sesi latihan.'}
           </p>
         </div>
       ) : (

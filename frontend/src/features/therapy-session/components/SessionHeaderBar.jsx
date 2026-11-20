@@ -101,10 +101,26 @@ export function SessionHeaderBar({
             onStartSession && (
               <Button
                 type="button"
+                disabled={!isCameraActive}
                 onClick={onStartSession}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 px-4 shadow-sm flex items-center gap-1.5 shrink-0"
+                className={`font-bold text-xs h-9 px-4 shadow-sm flex items-center gap-1.5 shrink-0 transition-all ${
+                  isCameraActive
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer active:scale-[0.98]'
+                    : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60 border border-border'
+                }`}
+                title={
+                  isCameraActive
+                    ? 'Mulai penghitungan otomatis 10 repetisi latihan'
+                    : 'Nyalakan kamera terlebih dahulu sebelum memulai latihan'
+                }
               >
-                <Play className="size-4 fill-white" />
+                <Play
+                  className={`size-4 ${
+                    isCameraActive
+                      ? 'fill-white text-white'
+                      : 'fill-muted-foreground text-muted-foreground'
+                  }`}
+                />
                 <span>Mulai Hitung</span>
               </Button>
             )

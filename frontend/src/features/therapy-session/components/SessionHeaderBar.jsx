@@ -1,7 +1,7 @@
 import React from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Activity, Cpu, Hand, CheckCheck, Play, Pause, XCircle } from 'lucide-react'
+import { Activity, Cpu, Hand, CheckCheck, Play, Pause, XCircle, Crosshair } from 'lucide-react'
 
 export function SessionHeaderBar({
   patientName = 'Tn. Budi Santoso',
@@ -15,6 +15,7 @@ export function SessionHeaderBar({
   currentReps = 0,
   targetReps = 10,
   onStartSession = null,
+  onCalibrate = null,
   onTogglePause = null,
   onCancel = null,
   onFinish = null,
@@ -109,6 +110,20 @@ export function SessionHeaderBar({
             )
           ) : (
             <div className="flex items-center gap-2 shrink-0">
+              {onCalibrate && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onCalibrate}
+                  className="text-xs h-9 px-2.5 font-semibold text-primary-700 border-primary-200 hover:bg-primary-50"
+                  title="Kalibrasi ulang posisi lurus netral (0°)"
+                >
+                  <Crosshair className="size-3.5 mr-1 text-primary-600" />
+                  <span>Set 0°</span>
+                </Button>
+              )}
+
               {onTogglePause && (
                 <Button
                   type="button"

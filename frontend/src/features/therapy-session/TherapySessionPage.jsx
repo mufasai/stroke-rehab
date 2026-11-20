@@ -7,7 +7,6 @@ import { ROMGaugeCard } from './components/ROMGaugeCard'
 import { QualityStatusCard } from './components/QualityStatusCard'
 import { RepetitionTracker } from './components/RepetitionTracker'
 import { CompensationMonitor } from './components/CompensationMonitor'
-import { SessionActionPanel } from './components/SessionActionPanel'
 import { TherapistNotesCard } from './components/TherapistNotesCard'
 import { SessionSummaryModal } from './components/SessionSummaryModal'
 import { useMediaPipeHands } from './hooks/useMediaPipeHands'
@@ -197,7 +196,7 @@ export default function TherapySessionPage() {
         </div>
       )}
 
-      {/* 1. Header Sesi Terpadu (Lengkap dengan Quick Actions di Baris Atas) */}
+      {/* 1. Header Sesi Terpadu (Lengkap dengan Kontrol Utama di Baris Atas) */}
       <SessionHeaderBar
         patientName={session.patientData.name}
         rmNumber={session.patientData.id}
@@ -210,12 +209,13 @@ export default function TherapySessionPage() {
         currentReps={session.currentReps}
         targetReps={session.targetRepetitions}
         onStartSession={session.startSession}
+        onCalibrate={session.calibrateNeutralPosition}
         onTogglePause={session.togglePause}
         onCancel={session.resetSession}
         onFinish={session.finishSessionEarly}
       />
 
-      {/* 2. Workspace Utama (Dua Kolom: 62% Kamera vs 38% Metrik & Kontrol) */}
+      {/* 2. Workspace Utama (Dua Kolom: 62% Kamera vs 38% Metrik) */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
         {/* Kolom Kiri: Panel Kamera dan Feedback Langsung (7 Kolom Grid) */}
         <div className="xl:col-span-7 space-y-3">
@@ -249,20 +249,8 @@ export default function TherapySessionPage() {
           />
         </div>
 
-        {/* Kolom Kanan: Panel Kontrol Klinis & Metrik Real-Time (5 Kolom Grid) */}
+        {/* Kolom Kanan: Panel Metrik Real-Time & Target Klinis (5 Kolom Grid) */}
         <div className="xl:col-span-5 space-y-3">
-          {/* Kontrol Utama Sesi (Ditempatkan di Posisi Paling Atas Sejajar Kamera) */}
-          <SessionActionPanel
-            sessionStatus={session.sessionStatus}
-            currentReps={session.currentReps}
-            targetRepetitions={session.targetRepetitions}
-            onStartSession={session.startSession}
-            onCalibrate={session.calibrateNeutralPosition}
-            onTogglePause={session.togglePause}
-            onCancel={session.resetSession}
-            onFinish={session.finishSessionEarly}
-          />
-
           {/* Status Kualitas & Fase Gerakan */}
           <QualityStatusCard
             quality={session.liveMetrics.quality}

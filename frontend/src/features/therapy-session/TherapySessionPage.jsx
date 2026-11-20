@@ -77,7 +77,60 @@ export default function TherapySessionPage() {
 
   const handleSaveToDatabase = () => {
     if (!session.repetitionHistory || session.repetitionHistory.length === 0) {
-      alert('Belum ada gerakan latihan yang tercatat untuk disimpan.')
+      const bestRom = session.maxSessionRom || session.liveMetrics.romValue || 0
+      if (bestRom > 0.06) {
+        const confirmSavePartial = window.confirm(
+          `Belum ada repetisi yang mencapai target penuh (${session.targetRom.toFixed(3)}).\n\n` +
+            `Namun pasien telah melakukan upaya gerakan dengan bukaan terbaik: ${bestRom.toFixed(3)}.\n\n` +
+            `Apakah Anda ingin menyimpan sesi ini sebagai rekaman "Latihan Parsial" ke rekam medis pasien?`
+        )
+        if (confirmSavePartial) {
+          let snap = null
+          try {
+            snap = handleCaptureSnapshot()
+          } catch (e) {
+            console.warn('Gagal menangkap snapshot parsial:', e)
+          }
+
+          const partialRep = {
+            repNumber: 1,
+            quality: 'incomplete',
+            romValue: bestRom,
+            wristDeviation: session.liveMetrics.wristDeviation || 0,
+            snapshotUrl: snap,
+            timestamp: new Date().toLocaleTimeString('id-ID', {
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+            }),
+          }
+
+          const saved = saveTherapySession({
+            patientData: session.patientData,
+            exerciseType: 'finger_spread',
+            exerciseName: 'Membuka Jari (Finger Spread) - Latihan Parsial',
+            repetitionHistory: [partialRep],
+            therapistNotes: session.therapistNotes
+              ? `${session.therapistNotes} [Latihan parsial: bukaan maksimal ${bestRom.toFixed(3)}]`
+              : `Latihan mandiri/terbimbing dengan rentang bukaan parsial (terbaik: ${bestRom.toFixed(3)}). Disimpan untuk evaluasi pemulihan.`,
+            effectiveTargetRom: session.targetRom,
+          })
+
+          session.setIsSummaryModalOpen(false)
+          session.resetSession()
+
+          if (saved) {
+            setSavedSuccessInfo({
+              id: saved.id,
+              totalReps: 1,
+              snapCount: snap ? 1 : 0,
+            })
+          }
+          return
+        }
+      }
+
+      alert('Belum ada gerakan latihan yang terdeteksi untuk disimpan.')
       session.setIsSummaryModalOpen(false)
       return
     }
@@ -88,7 +141,7 @@ export default function TherapySessionPage() {
       exerciseName: 'Membuka Jari (Finger Spread)',
       repetitionHistory: session.repetitionHistory,
       therapistNotes: session.therapistNotes,
-      effectiveTargetRom: calibConfig.targetRomSpread || 0.15,
+      effectiveTargetRom: session.targetRom,
     })
 
     session.setIsSummaryModalOpen(false)
@@ -182,6 +235,9 @@ export default function TherapySessionPage() {
             onToggleAudio={setAudioEnabled}
             isMirrored={isMirrored}
             onToggleMirror={handleToggleMirror}
+            isHandDetected={session.liveMetrics.isHandDetected}
+            quality={session.liveMetrics.quality}
+            wristDeviation={session.liveMetrics.wristDeviation}
             onStartCamera={camera.startCamera}
             onStopCamera={camera.stopCamera}
           />
@@ -215,13 +271,16 @@ export default function TherapySessionPage() {
             holdProgress={session.holdProgress}
           />
 
-          {/* Pengukur Rentang Gerak (ROM) Bukaan Jari */}
+          {/* Pengukur Rentang Gerak (ROM) Bukaan Jari & Penyesuaian Target Adaptif */}
           <ROMGaugeCard
             romValue={session.liveMetrics.romValue}
-            targetRom={session.liveMetrics.targetRom}
+            targetRom={session.targetRom}
             minVal={0.06}
             maxVal={0.2}
             exerciseType="finger_spread"
+            onUpdateTarget={session.updateTargetRom}
+            onSetTargetFromCurrent={session.setTargetFromCurrentRom}
+            isHandDetected={session.liveMetrics.isHandDetected}
           />
 
           {/* Target & Riwayat 10 Repetisi */}

@@ -68,19 +68,39 @@ export function useTherapySession({
 
   // Load configured thresholds dynamically from calibration settings
   const calib = loadCalibrationConfig()
-  const effectiveTargetRom =
+  const initialTargetRom =
     exerciseType === 'fist_curl'
       ? calib.targetAngleFist
       : exerciseType === 'thumb_to_tips'
       ? calib.targetRomThumb
       : calib.targetRomSpread
+
+  const [targetRom, setTargetRom] = useState(initialTargetRom)
+  const targetRomRef = useRef(initialTargetRom)
+  const maxRomSessionRef = useRef(0)
+
   const effectiveMaxWrist = calib.maxWristDeviation || 25
   const effectiveHoldDurationMs = (calib.holdDurationSeconds || 0.7) * 1000
+
+  const updateTargetRom = useCallback((newTarget) => {
+    const val = Number(parseFloat(newTarget).toFixed(3))
+    if (!isNaN(val) && val > 0.03) {
+      setTargetRom(val)
+      targetRomRef.current = val
+      setLiveMetrics((prev) => ({ ...prev, targetRom: val }))
+    }
+  }, [])
+
+  const setTargetFromCurrentRom = useCallback(() => {
+    if (smoothRomRef.current && smoothRomRef.current > 0.05) {
+      updateTargetRom(smoothRomRef.current)
+    }
+  }, [updateTargetRom])
 
   // Real-time kinematic live state
   const [liveMetrics, setLiveMetrics] = useState({
     romValue: 0,
-    targetRom: effectiveTargetRom,
+    targetRom: initialTargetRom,
     quality: QUALITY_STATUS.INCOMPLETE,
     wristDeviation: 0,
     variance: 0,
@@ -184,6 +204,13 @@ export function useTherapySession({
         exerciseType === 'fist_curl'
           ? Math.round(smoothedRom)
           : parseFloat(smoothedRom.toFixed(3))
+
+      const effectiveTargetRom = targetRomRef.current
+
+      // Track peak ROM achieved in current session
+      if (displayRom > maxRomSessionRef.current) {
+        maxRomSessionRef.current = displayRom
+      }
 
       // Re-evaluate quality using smoothed wrist deviation and smoothed ROM
       let smoothedQuality = rawEval.quality
@@ -354,6 +381,7 @@ export function useTherapySession({
       setLiveMetrics({
         ...rawEval,
         romValue: displayRom,
+        targetRom: effectiveTargetRom,
         wristDeviation: smoothedWristDev,
         quality: smoothedQuality,
         feedbackMessage,
@@ -376,6 +404,7 @@ export function useTherapySession({
     baselineWristAngleRef.current = null
     smoothRomRef.current = null
     smoothWristDevRef.current = null
+    maxRomSessionRef.current = 0
     setCurrentReps(0)
     setRepetitionHistory([])
     setSessionStatus('ready')
@@ -402,6 +431,10 @@ export function useTherapySession({
     isCalibrated,
     currentReps,
     targetRepetitions,
+    targetRom,
+    maxSessionRom: maxRomSessionRef.current,
+    updateTargetRom,
+    setTargetFromCurrentRom,
     repetitionHistory,
     liveMetrics,
     therapistNotes,

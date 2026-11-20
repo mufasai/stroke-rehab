@@ -1,5 +1,5 @@
-import React from 'react'
-import { Camera, Eye, Volume2, VideoOff, RefreshCw, FlipHorizontal } from 'lucide-react'
+import React, { useState } from 'react'
+import { Camera, Eye, Volume2, VideoOff, FlipHorizontal, Scan } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export function VideoWorkspace({
@@ -18,9 +18,34 @@ export function VideoWorkspace({
   onToggleAudio,
   isMirrored = true,
   onToggleMirror = () => {},
+  isHandDetected = false,
+  quality = 'incomplete',
+  wristDeviation = 0,
   onStartCamera,
   onStopCamera,
 }) {
+  const [showGuide, setShowGuide] = useState(true)
+
+  // Dynamic adaptive state for detection guide box
+  let guideBorder = 'border-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.7)]'
+  let guideBadge = 'bg-cyan-950/90 text-cyan-300 border-cyan-400/60'
+  let guideText = 'Arahkan Telapak Tangan ke Area Ini'
+
+  if (isHandDetected) {
+    if (quality === 'compensatory') {
+      guideBorder = 'border-amber-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.85)]'
+      guideBadge = 'bg-amber-950/90 text-amber-300 border-amber-400/60 animate-pulse'
+      guideText = `Pergelangan Miring (${wristDeviation}°) - Luruskan Tangan`
+    } else if (quality === 'correct') {
+      guideBorder = 'border-emerald-400 drop-shadow-[0_0_18px_rgba(52,211,153,0.85)]'
+      guideBadge = 'bg-emerald-950/90 text-emerald-300 border-emerald-400/60'
+      guideText = 'Posisi Tangan & Bukaan Jari Optimal'
+    } else {
+      guideBorder = 'border-teal-400 drop-shadow-[0_0_12px_rgba(45,212,191,0.7)]'
+      guideBadge = 'bg-teal-950/90 text-teal-300 border-teal-400/60'
+      guideText = 'Tangan Terdeteksi (21 Titik Landmark Aktif)'
+    }
+  }
   return (
     <div className="bg-card border border-border rounded-xl p-4 shadow-sm flex flex-col space-y-3">
       {/* Video Viewport Container */}
@@ -77,25 +102,43 @@ export function VideoWorkspace({
               </span>
             </div>
 
-            {/* Optimal Detection Guide Box */}
-            <div className="absolute inset-10 sm:inset-14 border-2 border-dashed border-emerald-500/50 rounded-xl pointer-events-none flex flex-col justify-between p-3 z-10">
-              <div className="flex justify-between items-start">
-                <span className="bg-emerald-950/70 text-emerald-400 text-[10px] font-mono px-2 py-0.5 rounded border border-emerald-500/30">
-                  AREA DETEKSI OPTIMAL
-                </span>
-                <span className="bg-black/60 text-emerald-400 text-[10px] font-mono px-2 py-0.5 rounded">
-                  Top-Down 90°
-                </span>
+            {/* Adaptive Optimal Detection Guide Box with high contrast drop shadow */}
+            {showGuide && (
+              <div
+                style={{
+                  filter:
+                    'drop-shadow(0px 2px 5px rgba(0,0,0,0.9)) drop-shadow(0px 0px 1px rgba(0,0,0,0.9))',
+                }}
+                className={`absolute inset-7 sm:inset-11 md:inset-12 border-2 border-dashed rounded-2xl pointer-events-none flex flex-col justify-between p-3.5 z-10 transition-colors duration-300 ${guideBorder}`}
+              >
+                <div className="flex justify-between items-start gap-2">
+                  <span
+                    className={`text-[10px] sm:text-xs font-mono font-semibold px-2.5 py-1 rounded-md border backdrop-blur-md shadow-xs flex items-center gap-1.5 transition-colors ${guideBadge}`}
+                  >
+                    <span className="size-1.5 rounded-full bg-current animate-ping" />
+                    {guideText}
+                  </span>
+                  <span className="bg-black/75 text-white/90 text-[10px] font-mono px-2 py-0.5 rounded border border-white/20">
+                    Top-Down 90°
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-end text-[10px] font-mono">
+                  <span className="bg-black/75 text-white/80 px-2 py-0.5 rounded border border-white/20">
+                    Telapak Menghadap Meja
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded border backdrop-blur-md font-semibold transition-colors ${
+                      isHandDetected
+                        ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40'
+                        : 'bg-black/75 text-white/60 border-white/20'
+                    }`}
+                  >
+                    {isHandDetected ? 'Landmarks: 21 Pts (Terkunci)' : 'Menunggu Tangan...'}
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between items-end">
-                <span className="text-[10px] font-mono text-white/70">
-                  Telapak Menghadap Meja
-                </span>
-                <span className="text-[10px] font-mono text-emerald-400">
-                  Landmarks: 21 Pts
-                </span>
-              </div>
-            </div>
+            )}
           </>
         )}
 
@@ -167,12 +210,23 @@ export function VideoWorkspace({
           <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground">
             <input
               type="checkbox"
+              checked={showGuide}
+              onChange={(e) => setShowGuide(e.target.checked)}
+              className="rounded border-input text-primary-600 focus:ring-primary-500"
+            />
+            <Scan className="h-3.5 w-3.5" />
+            <span>Kotak Panduan</span>
+          </label>
+
+          <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground">
+            <input
+              type="checkbox"
               checked={showLandmarks}
               onChange={(e) => onToggleLandmarks(e.target.checked)}
               className="rounded border-input text-primary-600 focus:ring-primary-500"
             />
             <Eye className="h-3.5 w-3.5" />
-            <span>Overlay Landmark (21 Pts)</span>
+            <span>Landmarks</span>
           </label>
 
           <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground">

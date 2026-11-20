@@ -82,7 +82,7 @@ export function SessionActionPanel({
             <span>Mulai Hitung Latihan (Set 0°)</span>
           </Button>
           <p className="text-[11px] text-muted-foreground text-center leading-relaxed px-1">
-            Letakkan telapak tangan lurus di depan webcam, lalu klik tombol di atas untuk memulai penghitungan otomatis 10 repetisi.
+            Letakkan telapak tangan lurus di depan webcam, lalu klik tombol di atas untuk mulai menghitung repetisi.
           </p>
         </div>
       ) : (

@@ -7,7 +7,7 @@
  * @param {HTMLCanvasElement|null} landmarkCanvas
  * @returns {string|null} base64 data URL string, or null on failure
  */
-export function captureRepetitionSnapshot(videoElement, landmarkCanvas) {
+export function captureRepetitionSnapshot(videoElement, landmarkCanvas, isMirrored = false) {
   try {
     if (!videoElement || !videoElement.videoWidth || !videoElement.videoHeight) {
       return null
@@ -31,6 +31,13 @@ export function captureRepetitionSnapshot(videoElement, landmarkCanvas) {
     ctx.imageSmoothingEnabled = true
     ctx.imageSmoothingQuality = 'high'
 
+    // Save context state for potential mirror flip
+    ctx.save()
+    if (isMirrored) {
+      ctx.translate(targetWidth, 0)
+      ctx.scale(-1, 1)
+    }
+
     // 1. Draw raw high-resolution video frame
     ctx.drawImage(videoElement, 0, 0, targetWidth, targetHeight)
 
@@ -38,6 +45,7 @@ export function captureRepetitionSnapshot(videoElement, landmarkCanvas) {
     if (landmarkCanvas && landmarkCanvas.width > 0 && landmarkCanvas.height > 0) {
       ctx.drawImage(landmarkCanvas, 0, 0, targetWidth, targetHeight)
     }
+    ctx.restore()
 
     // 3. Clinical timestamp badge in bottom-left corner
     ctx.save()

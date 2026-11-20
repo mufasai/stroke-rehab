@@ -1,6 +1,7 @@
 import React from 'react'
 import { Badge } from '@/components/ui/badge'
-import { Activity, Camera, Cpu, Hand } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Activity, Camera, Cpu, Hand, CheckCheck } from 'lucide-react'
 
 export function SessionHeaderBar({
   patientName = 'Tn. Budi Santoso',
@@ -11,6 +12,10 @@ export function SessionHeaderBar({
   latencyMs = 11,
   isCameraActive = true,
   cameraName = 'Webcam Meja USB (Top-Down 90°)',
+  sessionStatus = 'ready',
+  onFinish = null,
+  currentReps = 0,
+  targetReps = 10,
 }) {
   return (
     <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
@@ -41,8 +46,8 @@ export function SessionHeaderBar({
           </div>
         </div>
 
-        {/* Sensor and Engine Status Indicators */}
-        <div className="flex items-center gap-4 text-xs border-t lg:border-t-0 pt-3 lg:pt-0 border-border">
+        {/* Sensor and Engine Status Indicators + Prominent Save Action */}
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs border-t lg:border-t-0 pt-3 lg:pt-0 border-border">
           <div className="flex items-center gap-2">
             <Activity className="h-4 w-4 text-success" />
             <div>
@@ -68,6 +73,25 @@ export function SessionHeaderBar({
               </div>
             </div>
           </div>
+
+          {/* Prominent Quick-Action Button in Header */}
+          {onFinish && sessionStatus !== 'ready' && (
+            <>
+              <div className="h-8 w-px bg-border hidden sm:block" />
+              <Button
+                type="button"
+                onClick={onFinish}
+                className="bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs h-9 px-4 shadow-sm flex items-center gap-1.5 shrink-0 animate-fade-in"
+                title="Simpan sesi latihan dan rincian foto ke rekam medis"
+              >
+                <CheckCheck className="size-4" />
+                <span>Simpan & Selesai Terapi</span>
+                <span className="ml-0.5 bg-white/20 px-1.5 py-0.2 rounded-full text-[10px] font-mono">
+                  {currentReps}/{targetReps}
+                </span>
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </div>

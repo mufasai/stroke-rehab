@@ -49,6 +49,17 @@ export function SessionActionPanel({
           </Button>
         ) : (
           <>
+            {/* Primary Action Button placed prominently at top of controls */}
+            <Button
+              type="button"
+              size="lg"
+              onClick={onFinish}
+              className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm shadow-md h-11 flex items-center justify-center gap-2"
+            >
+              <CheckCheck className="h-4 w-4" />
+              Simpan & Selesai Terapi
+            </Button>
+
             <Button
               type="button"
               variant="outline"
@@ -92,16 +103,6 @@ export function SessionActionPanel({
                 Ulangi Sesi
               </Button>
             </div>
-
-            <Button
-              type="button"
-              size="lg"
-              onClick={onFinish}
-              className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm shadow-sm"
-            >
-              <CheckCheck className="h-4 w-4 mr-2" />
-              Simpan & Selesai Terapi
-            </Button>
           </>
         )}
       </div>

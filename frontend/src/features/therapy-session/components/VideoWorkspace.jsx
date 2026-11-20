@@ -1,5 +1,5 @@
 import React from 'react'
-import { Camera, Eye, Volume2, VideoOff, RefreshCw } from 'lucide-react'
+import { Camera, Eye, Volume2, VideoOff, RefreshCw, FlipHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export function VideoWorkspace({
@@ -16,6 +16,8 @@ export function VideoWorkspace({
   onToggleLandmarks,
   audioEnabled,
   onToggleAudio,
+  isMirrored = true,
+  onToggleMirror = () => {},
   onStartCamera,
   onStopCamera,
 }) {
@@ -23,23 +25,25 @@ export function VideoWorkspace({
     <div className="bg-card border border-border rounded-xl p-4 shadow-sm flex flex-col space-y-3">
       {/* Video Viewport Container */}
       <div className="relative aspect-[16/10] w-full bg-slate-950 rounded-lg overflow-hidden flex items-center justify-center border border-border/80">
-        {/* HTML5 Video Element */}
+        {/* HTML5 Video Element with optional mirror flip */}
         <video
           ref={videoRef}
           playsInline
           muted
           autoPlay
-          className={`absolute inset-0 w-full h-full object-cover ${
+          style={{ transform: isMirrored ? 'scaleX(-1)' : 'none' }}
+          className={`absolute inset-0 w-full h-full object-cover transition-transform duration-200 ${
             isCameraActive ? 'opacity-100' : 'opacity-0'
           }`}
         />
 
-        {/* MediaPipe 21-Landmark Canvas Overlay */}
+        {/* MediaPipe 21-Landmark Canvas Overlay (mirrored in sync with video) */}
         <canvas
           ref={canvasRef}
           width={1280}
           height={720}
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10"
+          style={{ transform: isMirrored ? 'scaleX(-1)' : 'none' }}
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10 transition-transform duration-200"
         />
 
         {/* Status Badges Overlay */}
@@ -50,6 +54,21 @@ export function VideoWorkspace({
                 <span className="size-2 rounded-full bg-rose-500 animate-pulse" />
                 LIVE STREAMING
               </span>
+
+              {/* Quick Mirror Toggle Button on video overlay */}
+              <button
+                type="button"
+                onClick={onToggleMirror}
+                className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold backdrop-blur-md transition-all border ${
+                  isMirrored
+                    ? 'bg-emerald-600/90 text-white border-emerald-400/80 shadow-xs'
+                    : 'bg-black/60 text-slate-300 border-white/20 hover:bg-black/80'
+                }`}
+                title="Klik untuk membalikkan arah kamera (mode cermin)"
+              >
+                <FlipHorizontal className="size-3.5" />
+                <span>{isMirrored ? 'Cermin: ON' : 'Cermin: OFF'}</span>
+              </button>
             </div>
 
             <div className="absolute top-3 right-3 z-20">
@@ -129,8 +148,22 @@ export function VideoWorkspace({
           </select>
         </div>
 
-        {/* Visual and Audio Toggles */}
-        <div className="flex items-center gap-4">
+        {/* Visual, Audio, and Mirror Toggles */}
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+          <button
+            type="button"
+            onClick={onToggleMirror}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-colors ${
+              isMirrored
+                ? 'bg-primary-50 text-primary-800 border-primary-300 font-semibold'
+                : 'bg-background text-muted-foreground border-input hover:text-foreground'
+            }`}
+            title="Ubah arah kamera antara invers (cermin) atau kamera normal"
+          >
+            <FlipHorizontal className="size-3.5" />
+            <span>{isMirrored ? 'Invers (Cermin ON)' : 'Normal (Cermin OFF)'}</span>
+          </button>
+
           <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground">
             <input
               type="checkbox"

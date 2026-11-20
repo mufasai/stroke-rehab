@@ -30,10 +30,24 @@ export default function TherapySessionPage() {
   const [audioEnabled, setAudioEnabled] = useState(calibConfig.audioFeedback)
   const [savedSuccessInfo, setSavedSuccessInfo] = useState(null)
 
+  // Camera mirroring/inversion state (defaults to true for intuitive mirror movement)
+  const [isMirrored, setIsMirrored] = useState(() => {
+    const saved = localStorage.getItem('stroke_therapy_camera_mirrored')
+    return saved !== null ? saved === 'true' : true
+  })
+
+  const handleToggleMirror = useCallback(() => {
+    setIsMirrored((prev) => {
+      const next = !prev
+      localStorage.setItem('stroke_therapy_camera_mirrored', String(next))
+      return next
+    })
+  }, [])
+
   // Snapshot capturer callback invoked at each peak repetition
   const handleCaptureSnapshot = useCallback(() => {
-    return captureRepetitionSnapshot(videoRef.current, canvasRef.current)
-  }, [])
+    return captureRepetitionSnapshot(videoRef.current, canvasRef.current, isMirrored)
+  }, [isMirrored])
 
   // Initialize session state machine
   const session = useTherapySession({
@@ -138,6 +152,10 @@ export default function TherapySessionPage() {
         fps={camera.fps}
         latencyMs={camera.latencyMs}
         isCameraActive={camera.isCameraActive}
+        sessionStatus={session.sessionStatus}
+        onFinish={session.finishSessionEarly}
+        currentReps={session.currentReps}
+        targetReps={session.targetRepetitions}
         cameraName={
           camera.availableCameras.find((c) => c.deviceId === selectedCameraId)?.label ||
           'Webcam Meja USB (Top-Down 90°)'
@@ -162,6 +180,8 @@ export default function TherapySessionPage() {
             onToggleLandmarks={setShowLandmarks}
             audioEnabled={audioEnabled}
             onToggleAudio={setAudioEnabled}
+            isMirrored={isMirrored}
+            onToggleMirror={handleToggleMirror}
             onStartCamera={camera.startCamera}
             onStopCamera={camera.stopCamera}
           />

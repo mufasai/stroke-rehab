@@ -133,14 +133,33 @@ export function saveTherapySession({
       createdAt: now.toISOString(),
     }
 
-    // Prepend to localStorage
+    // Prepend to localStorage with quota safety fallback
     const raw = localStorage.getItem(COMPLETED_SESSIONS_STORAGE_KEY)
     const existing = raw ? JSON.parse(raw) : []
     const updated = [newSession, ...existing]
 
-    localStorage.setItem(COMPLETED_SESSIONS_STORAGE_KEY, JSON.stringify(updated))
-    window.dispatchEvent(new Event('stroke_therapy_session_saved'))
+    try {
+      localStorage.setItem(COMPLETED_SESSIONS_STORAGE_KEY, JSON.stringify(updated))
+    } catch (quotaErr) {
+      console.warn('LocalStorage quota terlampaui, membersihkan foto base64 pada sesi lampau...')
+      // Keep metrics but prune large base64 snapshots on sessions older than top 3
+      const pruned = updated.map((s, idx) => {
+        if (idx >= 3) {
+          return {
+            ...s,
+            snapshotUrl: s.snapshotUrl?.startsWith('data:') ? null : s.snapshotUrl,
+            repetitions: (s.repetitions || []).map((r) => ({
+              ...r,
+              snapshotUrl: null,
+            })),
+          }
+        }
+        return s
+      })
+      localStorage.setItem(COMPLETED_SESSIONS_STORAGE_KEY, JSON.stringify(pruned))
+    }
 
+    window.dispatchEvent(new Event('stroke_therapy_session_saved'))
     return newSession
   } catch (err) {
     console.error('Gagal menyimpan sesi terapi ke localStorage:', err)

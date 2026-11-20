@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   Sparkles,
   Eye,
+  ExternalLink,
 } from 'lucide-react'
 
 export function SessionDetailModal({
@@ -137,22 +138,6 @@ export function SessionDetailModal({
             {/* Repetition Selector Buttons */}
             {session.repetitions && session.repetitions.length > 0 && (
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5 scrollbar-thin">
-                <button
-                  type="button"
-                  onClick={() => setActiveRepIndex(null)}
-                  className={`
-                    px-2.5 py-1 rounded-md text-[11px] font-semibold shrink-0 transition-all flex items-center gap-1 border
-                    ${
-                      activeRepIndex === null
-                        ? 'bg-primary-600 text-white border-primary-600 shadow-xs'
-                        : 'bg-white text-foreground border-border hover:bg-secondary-100'
-                    }
-                  `}
-                >
-                  <Sparkles className="size-3" />
-                  Foto Terbaik
-                </button>
-
                 {session.repetitions.map((r, idx) => {
                   const isSelected = activeRepIndex === idx
                   const isCorrect = r.status === 'correct'
@@ -184,12 +169,24 @@ export function SessionDetailModal({
             )}
 
             {/* Photo Preview Canvas / Image Container */}
-            <div className="relative aspect-[16/9] w-full rounded-lg overflow-hidden bg-slate-900 border border-border flex items-center justify-center">
+            <div className="relative w-full rounded-lg overflow-hidden bg-slate-950 border border-border flex items-center justify-center min-h-[260px] max-h-[380px]">
               <img
                 src={displaySnapshot}
                 alt="Hand Therapy Snapshot"
-                className="w-full h-full object-cover"
+                className="max-h-[380px] w-full object-contain mx-auto transition-all"
               />
+
+              {displaySnapshot && (
+                <a
+                  href={displaySnapshot}
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Lihat foto ukuran asli / unduh"
+                  className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded p-1.5 backdrop-blur-xs transition-colors"
+                >
+                  <ExternalLink className="size-3.5" />
+                </a>
+              )}
 
               <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between bg-black/75 backdrop-blur-xs text-white text-[11px] px-3 py-1.5 rounded-md font-mono">
                 <div>

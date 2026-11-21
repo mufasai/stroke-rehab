@@ -6,6 +6,7 @@ import {
   QUALITY_STATUS,
 } from '@/lib/algorithms/exerciseEvaluator'
 import { smoothValue } from '@/lib/algorithms/kinematics'
+import { detectHandedness } from '@/lib/algorithms/handednessDetector'
 import { loadCalibrationConfig } from '@/features/calibration/calibrationConfig'
 
 const NEUTRAL_HOLD_MS = 250
@@ -56,6 +57,21 @@ export function useTherapySession({
     age: 62,
   },
 }) {
+  const [patient, setPatient] = useState(patientData)
+
+  useEffect(() => {
+    if (patientData) {
+      setPatient(patientData)
+    }
+  }, [patientData?.id, patientData?.rmNumber, patientData?.affectedHand])
+
+  const toggleAffectedHand = useCallback(() => {
+    setPatient((prev) => ({
+      ...prev,
+      affectedHand: prev.affectedHand === 'Kanan' ? 'Kiri' : 'Kanan',
+    }))
+  }, [])
+
   // 'ready' | 'running' | 'paused' | 'finished'
   const [sessionStatus, setSessionStatus] = useState('ready')
   const [currentReps, setCurrentReps] = useState(0)
@@ -65,6 +81,9 @@ export function useTherapySession({
   const [sessionPhase, setSessionPhase] = useState('READY')
   const [holdProgress, setHoldProgress] = useState(0)
   const [isCalibrated, setIsCalibrated] = useState(false)
+
+  // Rolling EMA vote for handedness detection stability: +1 for Right ('Kanan'), -1 for Left ('Kiri')
+  const smoothHandVoteRef = useRef(null)
 
   // Load configured thresholds dynamically from calibration settings
   const calib = loadCalibrationConfig()
@@ -107,6 +126,11 @@ export function useTherapySession({
     isSymmetric: true,
     feedbackMessage: 'Posisikan telapak tangan di kamera, lalu tekan Mulai Hitung Latihan',
     isHandDetected: false,
+    detectedHand: null,
+    affectedHand: patientData.affectedHand || 'Kanan',
+    isCorrectHand: true,
+    isWrongHand: false,
+    handConfidence: 1,
   })
 
   // Mutable refs for frame-rate-safe state machine and smoothing
@@ -160,7 +184,7 @@ export function useTherapySession({
   }, [])
 
   const processHandLandmarks = useCallback(
-    (landmarks) => {
+    (landmarks, results = null) => {
       if (sessionStatus === 'paused' || sessionStatus === 'finished') return
 
       // Auto-initialize baseline wrist angle on first detected hand so natural arm angle is 0 deg
@@ -177,12 +201,32 @@ export function useTherapySession({
       if (!rawEval.isHandDetected) {
         smoothRomRef.current = null
         smoothWristDevRef.current = null
+        smoothHandVoteRef.current = null
         stateRef.current.peakHoldStartTime = 0
         stateRef.current.neutralStartTime = 0
         setHoldProgress(0)
-        setLiveMetrics(rawEval)
+        setLiveMetrics({
+          ...rawEval,
+          detectedHand: null,
+          affectedHand: patient.affectedHand,
+          isCorrectHand: true,
+          isWrongHand: false,
+          handConfidence: 0,
+        })
         return
       }
+
+      // Anatomical handedness detection
+      const handInfo = detectHandedness(landmarks, results?.multiHandedness)
+      const currentVote = handInfo.isRight ? 1 : -1
+      smoothHandVoteRef.current =
+        smoothHandVoteRef.current === null
+          ? currentVote
+          : smoothHandVoteRef.current * 0.72 + currentVote * 0.28
+
+      const stableHand = smoothHandVoteRef.current >= 0 ? 'Kanan' : 'Kiri'
+      const isCorrectHand = stableHand === patient.affectedHand
+      const isWrongHand = !isCorrectHand
 
       latestRawHandAngleRef.current = rawEval.rawHandAngle
 
@@ -210,6 +254,29 @@ export function useTherapySession({
       // Track peak ROM achieved in current session
       if (displayRom > maxRomSessionRef.current) {
         maxRomSessionRef.current = displayRom
+      }
+
+      // Check for wrong hand violation: immediately flag and prevent counting
+      if (isWrongHand) {
+        stateRef.current.peakHoldStartTime = 0
+        stateRef.current.neutralStartTime = 0
+        setHoldProgress(0)
+
+        const wrongHandMsg = `⚠️ Terdeteksi Tangan ${stableHand}! Program pasien (${patient.name}) adalah Tangan ${patient.affectedHand}. Mohon gunakan Tangan ${patient.affectedHand}.`
+
+        setLiveMetrics({
+          ...rawEval,
+          romValue: displayRom,
+          wristDeviation: smoothedWristDev,
+          quality: 'wrong_hand',
+          feedbackMessage: wrongHandMsg,
+          detectedHand: stableHand,
+          affectedHand: patient.affectedHand,
+          isCorrectHand: false,
+          isWrongHand: true,
+          handConfidence: handInfo.confidence,
+        })
+        return
       }
 
       // Re-evaluate quality using smoothed wrist deviation and smoothed ROM
@@ -240,8 +307,12 @@ export function useTherapySession({
           romValue: displayRom,
           wristDeviation: smoothedWristDev,
           quality: smoothedQuality,
-          feedbackMessage:
-            'Posisi tangan terdeteksi. Atur posisi nyaman, lalu klik "Mulai Hitung Latihan".',
+          feedbackMessage: `Tangan ${stableHand} terdeteksi (sesuai target). Atur posisi nyaman, lalu klik "Mulai Hitung Latihan".`,
+          detectedHand: stableHand,
+          affectedHand: patient.affectedHand,
+          isCorrectHand: true,
+          isWrongHand: false,
+          handConfidence: handInfo.confidence,
         })
         return
       }
@@ -424,7 +495,9 @@ export function useTherapySession({
   }, [])
 
   return {
-    patientData,
+    patientData: patient,
+    setPatientData: setPatient,
+    toggleAffectedHand,
     sessionStatus,
     sessionPhase,
     holdProgress,

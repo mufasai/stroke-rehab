@@ -1,7 +1,7 @@
 import React from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Cpu, Hand, CheckCheck, Play, Pause, XCircle } from 'lucide-react'
+import { Cpu, Hand, CheckCheck, Play, Pause, XCircle, ArrowLeftRight } from 'lucide-react'
 
 export function SessionHeaderBar({
   patientName = 'Tn. Budi Santoso',
@@ -18,6 +18,10 @@ export function SessionHeaderBar({
   onTogglePause = null,
   onCancel = null,
   onFinish = null,
+  patientList = [],
+  selectedPatientId = '',
+  onSelectPatient = null,
+  onToggleHand = null,
 }) {
   const isReady = sessionStatus === 'ready'
   const isPaused = sessionStatus === 'paused'
@@ -49,15 +53,54 @@ export function SessionHeaderBar({
               <span className="text-[11px] font-semibold tracking-wider uppercase text-primary-700 bg-primary-50 px-2 py-0.5 rounded shrink-0">
                 Sesi Terapi Aktif
               </span>
-              <h2 className="text-base sm:text-lg font-bold text-foreground">
-                {patientName}
-              </h2>
-              <span className="text-xs text-muted-foreground shrink-0">
+
+              {patientList && patientList.length > 0 && onSelectPatient ? (
+                <div className="relative inline-flex items-center">
+                  <select
+                    value={selectedPatientId}
+                    onChange={(e) => onSelectPatient(e.target.value)}
+                    className="font-bold text-base sm:text-lg text-foreground bg-transparent border-b-2 border-dotted border-primary-500 hover:border-primary-700 focus:outline-none cursor-pointer pr-4 appearance-none py-0.5"
+                    title="Pilih pasien untuk sesi terapi"
+                  >
+                    {patientList.map((p) => (
+                      <option
+                        key={p.id || p.rmNumber}
+                        value={p.rmNumber || p.id}
+                        className="text-sm bg-card text-foreground"
+                      >
+                        {p.name} ({p.rmNumber}) — Tangan {p.affectedHand}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <h2 className="text-base sm:text-lg font-bold text-foreground">
+                  {patientName}
+                </h2>
+              )}
+
+              <span className="text-xs text-muted-foreground shrink-0 hidden md:inline">
                 (No. RM: {rmNumber})
               </span>
-              <Badge variant="outline" className="text-xs font-medium border-primary-300 text-primary-700 shrink-0">
-                Tangan {affectedHand}
-              </Badge>
+
+              {onToggleHand ? (
+                <button
+                  type="button"
+                  onClick={onToggleHand}
+                  className="text-xs font-bold px-2.5 py-0.5 rounded-full border border-primary-300 bg-primary-50 text-primary-800 hover:bg-primary-100 hover:border-primary-500 transition-all flex items-center gap-1.5 shadow-xs shrink-0 cursor-pointer"
+                  title="Klik untuk ubah cepat target Tangan Kanan / Kiri"
+                >
+                  <span>Tangan {affectedHand}</span>
+                  <ArrowLeftRight className="size-3 text-primary-600" />
+                </button>
+              ) : (
+                <Badge
+                  variant="outline"
+                  className="text-xs font-medium border-primary-300 text-primary-700 shrink-0"
+                >
+                  Tangan {affectedHand}
+                </Badge>
+              )}
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
               Program Latihan: <span className="font-medium text-foreground">{exerciseName}</span>
@@ -69,6 +112,7 @@ export function SessionHeaderBar({
         <div className="flex items-center flex-wrap sm:flex-nowrap gap-2.5 sm:gap-3 text-xs border-t xl:border-t-0 pt-2.5 xl:pt-0 border-border shrink-0 justify-between sm:justify-end">
           {/* Telemetri Kamera & Respons */}
           <div className="flex items-center gap-3 bg-secondary-50/70 border border-border/80 px-3 py-1.5 rounded-lg shrink-0">
+            
             <div>
               <div className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground leading-none">
                 Kamera

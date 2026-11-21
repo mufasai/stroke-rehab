@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { SessionHeaderBar } from './components/SessionHeaderBar'
 import { VideoWorkspace } from './components/VideoWorkspace'
 import { KinematicFeedbackBanner } from './components/KinematicFeedbackBanner'
@@ -11,6 +11,7 @@ import { SessionSummaryModal } from './components/SessionSummaryModal'
 import { PhoneCameraConnectModal } from './components/PhoneCameraConnectModal'
 import { useMediaPipeHands } from './hooks/useMediaPipeHands'
 import { useTherapySession } from './hooks/useTherapySession'
+import { INITIAL_PATIENTS } from '@/features/patients/data/mockPatients'
 import { loadCalibrationConfig } from '@/features/calibration/calibrationConfig'
 import { captureRepetitionSnapshot } from '@/lib/algorithms/snapshotCapture'
 import { saveTherapySession } from '@/services/sessionStorage'
@@ -19,9 +20,13 @@ import { Button } from '@/components/ui/button'
 
 export default function TherapySessionPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const calibConfig = loadCalibrationConfig()
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
+
+  // Use passed patient from state or default to first patient (Tn. Budi Santoso)
+  const initialPatient = location.state?.patient || INITIAL_PATIENTS[0]
 
   const [selectedCameraId, setSelectedCameraId] = useState(
     calibConfig.selectedCameraId || ''
@@ -43,12 +48,7 @@ export default function TherapySessionPage() {
     targetRepetitions: 10,
     audioFeedbackEnabled: audioEnabled,
     onCaptureSnapshot: handleCaptureSnapshot,
-    patientData: {
-      id: 'RM-2024-089',
-      name: 'Tn. Budi Santoso',
-      affectedHand: 'Kanan',
-      age: 62,
-    },
+    patientData: initialPatient,
   })
 
   // Initialize MediaPipe camera and vision pipeline
@@ -57,8 +57,8 @@ export default function TherapySessionPage() {
     canvasRef,
     showLandmarks,
     selectedDeviceId: selectedCameraId,
-    onResults: (landmarks) => {
-      session.processHandLandmarks(landmarks)
+    onResults: (landmarks, results) => {
+      session.processHandLandmarks(landmarks, results)
     },
   })
 
@@ -200,10 +200,10 @@ export default function TherapySessionPage() {
         </div>
       )}
 
-      {/* 1. Header Sesi Terpadu (Lengkap dengan Kontrol Utama di Baris Atas) */}
+      {/* 1. Header Sesi Terpadu (Lengkap dengan Kontrol Utama & Pemilih Pasien/Tangan) */}
       <SessionHeaderBar
         patientName={session.patientData.name}
-        rmNumber={session.patientData.id}
+        rmNumber={session.patientData.rmNumber || session.patientData.id}
         affectedHand={session.patientData.affectedHand}
         exerciseName="Finger Spread (Bukaan Jari Tangan)"
         fps={camera.fps}
@@ -216,6 +216,17 @@ export default function TherapySessionPage() {
         onTogglePause={session.togglePause}
         onCancel={session.resetSession}
         onFinish={session.finishSessionEarly}
+        patientList={INITIAL_PATIENTS}
+        selectedPatientId={session.patientData.rmNumber || session.patientData.id}
+        onSelectPatient={(id) => {
+          const found = INITIAL_PATIENTS.find(
+            (p) => p.rmNumber === id || p.id === id
+          )
+          if (found) {
+            session.setPatientData(found)
+          }
+        }}
+        onToggleHand={session.toggleAffectedHand}
       />
 
       {/* 2. Workspace Utama (Dua Kolom: 62% Kamera vs 38% Metrik) */}
@@ -239,6 +250,9 @@ export default function TherapySessionPage() {
             isHandDetected={session.liveMetrics.isHandDetected}
             quality={session.liveMetrics.quality}
             wristDeviation={session.liveMetrics.wristDeviation}
+            detectedHand={session.liveMetrics.detectedHand}
+            affectedHand={session.patientData.affectedHand}
+            isWrongHand={session.liveMetrics.isWrongHand}
             onStartCamera={camera.startCamera}
             onStopCamera={camera.stopCamera}
             onOpenPhoneConnectModal={() => setIsPhoneModalOpen(true)}

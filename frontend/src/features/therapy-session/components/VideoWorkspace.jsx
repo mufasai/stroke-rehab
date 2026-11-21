@@ -19,6 +19,9 @@ export function VideoWorkspace({
   isHandDetected = false,
   quality = 'incomplete',
   wristDeviation = 0,
+  detectedHand = null,
+  affectedHand = 'Kanan',
+  isWrongHand = false,
   onStartCamera,
   onStopCamera,
   onOpenPhoneConnectModal = () => {},
@@ -32,18 +35,22 @@ export function VideoWorkspace({
   let guideText = 'Arahkan Telapak Tangan ke Area Ini'
 
   if (isHandDetected) {
-    if (quality === 'compensatory') {
+    if (isWrongHand) {
+      guideBorder = 'border-rose-500 drop-shadow-[0_0_20px_rgba(244,63,94,0.95)] animate-pulse'
+      guideBadge = 'bg-rose-950/95 text-rose-200 border-rose-500 font-bold'
+      guideText = `⚠️ Terdeteksi Tangan ${detectedHand}! Program: Tangan ${affectedHand}`
+    } else if (quality === 'compensatory') {
       guideBorder = 'border-amber-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.85)]'
       guideBadge = 'bg-amber-950/90 text-amber-300 border-amber-400/60 animate-pulse'
       guideText = `Pergelangan Miring (${wristDeviation}°) - Luruskan Tangan`
     } else if (quality === 'correct') {
       guideBorder = 'border-emerald-400 drop-shadow-[0_0_18px_rgba(52,211,153,0.85)]'
       guideBadge = 'bg-emerald-950/90 text-emerald-300 border-emerald-400/60'
-      guideText = 'Posisi Tangan & Bukaan Jari Optimal'
+      guideText = `Tangan ${detectedHand || 'Kanan'} Optimal & Stabil`
     } else {
       guideBorder = 'border-teal-400 drop-shadow-[0_0_12px_rgba(45,212,191,0.7)]'
       guideBadge = 'bg-teal-950/90 text-teal-300 border-teal-400/60'
-      guideText = 'Tangan Terdeteksi (21 Titik Landmark Aktif)'
+      guideText = `Tangan ${detectedHand || 'Pasien'} Terdeteksi (21 Titik)`
     }
   }
 
@@ -111,16 +118,22 @@ export function VideoWorkspace({
 
                 <div className="flex justify-between items-end text-[10px] font-mono">
                   <span className="bg-black/75 text-white/80 px-2 py-0.5 rounded border border-white/20">
-                    Telapak Menghadap Meja
+                    {detectedHand ? `Tangan Terdeteksi: ${detectedHand}` : 'Telapak Menghadap Kamera'}
                   </span>
                   <span
                     className={`px-2 py-0.5 rounded border backdrop-blur-md font-semibold transition-colors ${
                       isHandDetected
-                        ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40'
+                        ? isWrongHand
+                          ? 'bg-rose-950/90 text-rose-300 border-rose-500 animate-pulse'
+                          : 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40'
                         : 'bg-black/75 text-white/60 border-white/20'
                     }`}
                   >
-                    {isHandDetected ? 'Landmarks: 21 Pts (Terkunci)' : 'Menunggu Tangan...'}
+                    {isHandDetected
+                      ? isWrongHand
+                        ? `⚠️ Harap Gunakan Tangan ${affectedHand}`
+                        : `✓ Tangan ${detectedHand} (Sesuai)`
+                      : 'Menunggu Tangan...'}
                   </span>
                 </div>
               </div>

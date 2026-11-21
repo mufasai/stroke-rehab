@@ -12,7 +12,12 @@ export function KinematicFeedbackBanner({
   let Icon = CheckCircle2
   let statusText = 'Gerakan Optimal'
 
-  if (quality === QUALITY_STATUS.COMPENSATORY) {
+  if (quality === 'wrong_hand') {
+    bgColor = 'bg-rose-50 border-rose-300 text-rose-950 ring-1 ring-rose-300'
+    iconColor = 'text-rose-600'
+    Icon = AlertTriangle
+    statusText = 'Tangan Salah'
+  } else if (quality === QUALITY_STATUS.COMPENSATORY) {
     bgColor = 'bg-rose-50 border-rose-200 text-rose-900'
     iconColor = 'text-rose-600'
     Icon = AlertTriangle

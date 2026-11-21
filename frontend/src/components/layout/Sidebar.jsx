@@ -62,8 +62,8 @@ export function Sidebar() {
 
   return (
     <div className="w-64 bg-card border-r border-border min-h-screen flex flex-col">
-      {/* Brand Header */}
-      <div className="px-6 pt-6 pb-5">
+      {/* Brand Header (Tinggi 73px sejajar dengan navbar Header) */}
+      <div className="h-[73px] px-6 border-b border-border flex items-center shrink-0">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 bg-primary-600 rounded-lg flex items-center justify-center text-white font-bold shrink-0">
             SH
@@ -76,7 +76,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation Menu */}
-      <div className="px-4 py-2 flex-1">
+      <div className="p-4 pt-5 flex-1">
         <nav className="space-y-1">
           {visibleMenuItems.map((item) => {
             const isActive = location.pathname === item.path

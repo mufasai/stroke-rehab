@@ -15,8 +15,8 @@ export function Header({ therapistName = "Aisyah Putri, S.Ft., Ftr." }) {
   const seconds = String(currentTime.getSeconds()).padStart(2, '0')
 
   return (
-    <div className="bg-card border-b border-border px-6 py-4">
-      <div className="flex items-center justify-between">
+    <div className="bg-card border-b border-border px-6 h-[73px] flex items-center">
+      <div className="flex items-center justify-between w-full">
         <div className="text-xs text-muted-foreground">
         </div>
 

@@ -146,9 +146,6 @@ export function PhoneCameraConnectModal({
               Gunakan Kamera Smartphone (HP)
             </DialogTitle>
           </div>
-          <DialogDescription className="text-xs text-muted-foreground">
-            Sambungkan kamera belakang smartphone Anda secara nirkabel untuk posisi pengambilan gambar dari atas meja (Top-Down 90°).
-          </DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-center py-2">
@@ -188,7 +185,7 @@ export function PhoneCameraConnectModal({
                   3
                 </span>
                 <span className="text-muted-foreground">
-                  Posisikan HP menghadap meja (Top-Down). Video otomatis tersambung ke laptop ini!
+                  Posisikan HP menghadap meja.
                 </span>
               </div>
             </div>
@@ -224,54 +221,6 @@ export function PhoneCameraConnectModal({
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Live Connection Status Banner */}
-        <div className="rounded-xl border p-3 flex items-center justify-between text-xs bg-muted/40 border-border">
-          <div className="flex items-center gap-2">
-            {status === 'waiting' && (
-              <>
-                <Radio className="size-4 text-emerald-600 animate-pulse" />
-                <span className="text-foreground font-medium">
-                  Menunggu smartphone melakukan scan QR Code...
-                </span>
-              </>
-            )}
-            {status === 'connecting' && (
-              <>
-                <Wifi className="size-4 text-primary-600 animate-bounce" />
-                <span className="text-primary-700 font-semibold">
-                  Menerima stream video dari smartphone...
-                </span>
-              </>
-            )}
-            {status === 'connected' && (
-              <>
-                <CheckCircle2 className="size-4 text-emerald-600" />
-                <span className="text-emerald-700 font-bold">
-                  Kamera HP Berhasil Terhubung!
-                </span>
-              </>
-            )}
-            {status === 'error' && (
-              <>
-                <AlertCircle className="size-4 text-rose-600" />
-                <span className="text-rose-700 font-medium">
-                  {errorMessage || 'Kendala sambungan nirkabel.'}
-                </span>
-              </>
-            )}
-          </div>
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="text-xs h-7 text-muted-foreground"
-          >
-            Batal
-          </Button>
         </div>
       </DialogContent>
     </Dialog>

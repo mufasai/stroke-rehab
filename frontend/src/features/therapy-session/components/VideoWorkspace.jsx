@@ -189,18 +189,6 @@ export function VideoWorkspace({
               <option value="">Tidak Ada Kamera</option>
             )}
           </select>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onOpenPhoneConnectModal}
-            className="h-8 px-2.5 text-xs text-primary-700 border-primary-200 hover:bg-primary-50"
-            title="Hubungkan kamera HP secara nirkabel via QR Code"
-          >
-            <Smartphone className="size-3.5 mr-1 text-primary-600" />
-            <span>Koneksi HP</span>
-          </Button>
         </div>
 
         {/* Visual, Audio, and Landmark Toggles */}

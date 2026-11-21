@@ -1,7 +1,7 @@
 import React from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Activity, Cpu, Hand, CheckCheck, Play, Pause, XCircle, Crosshair } from 'lucide-react'
+import { Cpu, Hand, CheckCheck, Play, Pause, XCircle } from 'lucide-react'
 
 export function SessionHeaderBar({
   patientName = 'Tn. Budi Santoso',
@@ -15,7 +15,6 @@ export function SessionHeaderBar({
   currentReps = 0,
   targetReps = 10,
   onStartSession = null,
-  onCalibrate = null,
   onTogglePause = null,
   onCancel = null,
   onFinish = null,
@@ -39,24 +38,24 @@ export function SessionHeaderBar({
 
   return (
     <div className="bg-card border border-border rounded-xl p-3.5 sm:p-4 shadow-sm">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        {/* Patient and Exercise Identification */}
-        <div className="flex items-start sm:items-center gap-3">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 sm:gap-4">
+        {/* Identifikasi Pasien dan Latihan */}
+        <div className="flex items-center gap-3 min-w-0">
           <div className="h-10 w-10 rounded-lg bg-primary-100 flex items-center justify-center text-primary-700 shrink-0">
             <Hand className="h-5 w-5" />
           </div>
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-semibold tracking-wider uppercase text-primary-600 bg-primary-50 px-2 py-0.5 rounded">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <span className="text-[11px] font-semibold tracking-wider uppercase text-primary-700 bg-primary-50 px-2 py-0.5 rounded shrink-0">
                 Sesi Terapi Aktif
               </span>
               <h2 className="text-base sm:text-lg font-bold text-foreground">
                 {patientName}
               </h2>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground shrink-0">
                 (No. RM: {rmNumber})
               </span>
-              <Badge variant="outline" className="text-xs font-medium border-primary-300 text-primary-700">
+              <Badge variant="outline" className="text-xs font-medium border-primary-300 text-primary-700 shrink-0">
                 Tangan {affectedHand}
               </Badge>
             </div>
@@ -66,36 +65,35 @@ export function SessionHeaderBar({
           </div>
         </div>
 
-        {/* Status Indicators & Top Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 text-xs border-t lg:border-t-0 pt-3 lg:pt-0 border-border">
-          <div className="flex items-center gap-2 pr-2">
+        {/* Indikator Telemetri & Tombol Aksi */}
+        <div className="flex items-center flex-wrap sm:flex-nowrap gap-2.5 sm:gap-3 text-xs border-t xl:border-t-0 pt-2.5 xl:pt-0 border-border shrink-0 justify-between sm:justify-end">
+          {/* Telemetri Kamera & Respons */}
+          <div className="flex items-center gap-3 bg-secondary-50/70 border border-border/80 px-3 py-1.5 rounded-lg shrink-0">
             <div>
-              <div className="text-[10px] uppercase font-semibold text-muted-foreground">
+              <div className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground leading-none">
                 Kamera
               </div>
-              <div className="font-medium text-foreground">
+              <div className={`text-xs font-bold leading-tight mt-0.5 ${isCameraActive ? 'text-emerald-700' : 'text-foreground'}`}>
                 {isCameraActive ? `${fps} FPS` : 'OFFLINE'}
               </div>
             </div>
-          </div>
 
-          <div className="h-8 w-px bg-border hidden sm:block" />
+            <div className="h-6 w-px bg-border" />
 
-          <div className="flex items-center gap-2 pr-2">
-            <Cpu className="h-4 w-4 text-primary-600" />
-            <div>
-              <div className="text-[10px] uppercase font-semibold text-muted-foreground">
-                Respons
-              </div>
-              <div className="font-medium text-foreground">
-                {isCameraActive ? `${latencyMs} ms` : '-'}
+            <div className="flex items-center gap-1.5">
+              <Cpu className="h-3.5 w-3.5 text-primary-600 shrink-0" />
+              <div>
+                <div className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground leading-none">
+                  Respons
+                </div>
+                <div className="text-xs font-bold font-mono text-foreground leading-tight mt-0.5">
+                  {isCameraActive ? `${latencyMs} ms` : '-'}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Quick Action Button Group in Header */}
-          <div className="h-8 w-px bg-border hidden sm:block" />
-
+          {/* Tombol Kontrol Sesi */}
           {isReady ? (
             onStartSession && (
               <Button
@@ -125,20 +123,6 @@ export function SessionHeaderBar({
             )
           ) : (
             <div className="flex items-center gap-2 shrink-0">
-              {onCalibrate && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={onCalibrate}
-                  className="text-xs h-9 px-2.5 font-semibold text-primary-700 border-primary-200 hover:bg-primary-50"
-                  title="Kalibrasi ulang posisi lurus netral (0°)"
-                >
-                  <Crosshair className="size-3.5 mr-1 text-primary-600" />
-                  <span>Set 0°</span>
-                </Button>
-              )}
-
               {onTogglePause && (
                 <Button
                   type="button"
@@ -182,12 +166,12 @@ export function SessionHeaderBar({
                 <Button
                   type="button"
                   onClick={onFinish}
-                  className="bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs h-9 px-3.5 shadow-sm flex items-center gap-1.5 animate-fade-in"
+                  className="bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs h-9 px-3.5 shadow-sm flex items-center gap-1.5 animate-fade-in shrink-0"
                   title="Simpan sesi latihan ke rekam medis"
                 >
                   <CheckCheck className="size-4" />
                   <span>Simpan</span>
-                  <span className="bg-white/20 px-1.5 py-0.2 rounded-full text-[10px] font-mono">
+                  <span className="bg-white/20 px-1.5 py-0.5 rounded-full text-[10px] font-mono">
                     {currentReps}/{targetReps}
                   </span>
                 </Button>

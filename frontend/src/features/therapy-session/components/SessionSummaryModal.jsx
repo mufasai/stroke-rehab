@@ -111,7 +111,7 @@ export function SessionSummaryModal({
               id="modal-therapist-notes"
               value={therapistNotes}
               onChange={(e) => onChangeNotes(e.target.value)}
-              placeholder="Ketik catatan evaluasi klinis untuk rekam medis (contoh: Pasien mampu membuka jari stabil hingga repetisi ke-8, sedikit tremor di repetisi akhir)..."
+              placeholder="contoh: Pasien mampu membuka jari stabil hingga repetisi ke-8, sedikit tremor di repetisi akhir)"
               rows={3}
               className="w-full text-xs rounded-lg border border-input bg-background p-2.5 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500 resize-none"
             />

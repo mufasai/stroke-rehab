@@ -213,7 +213,6 @@ export default function TherapySessionPage() {
         currentReps={session.currentReps}
         targetReps={session.targetRepetitions}
         onStartSession={handleStartSession}
-        onCalibrate={session.calibrateNeutralPosition}
         onTogglePause={session.togglePause}
         onCancel={session.resetSession}
         onFinish={session.finishSessionEarly}
@@ -283,12 +282,12 @@ export default function TherapySessionPage() {
           />
 
           {/* Monitor Kompensasi Sudut & Simetri */}
-          <CompensationMonitor
+          {/* <CompensationMonitor
             wristDeviation={session.liveMetrics.wristDeviation}
             maxWristThreshold={calibConfig.maxWristDeviation || 25}
             isSymmetric={session.liveMetrics.isSymmetric}
             history={session.repetitionHistory}
-          />
+          /> */}
         </div>
       </div>
 

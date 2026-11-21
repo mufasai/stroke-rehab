@@ -189,37 +189,6 @@ export function PhoneCameraConnectModal({
                 </span>
               </div>
             </div>
-
-            {/* Direct Link Copier */}
-            <div className="pt-2 border-t border-border">
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="text"
-                  readOnly
-                  value={phoneUrl}
-                  className="flex-1 bg-muted/60 border border-input rounded-md px-2.5 py-1 text-[11px] font-mono text-muted-foreground truncate"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCopy}
-                  className="h-7 px-2 text-xs shrink-0"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="size-3.5 mr-1 text-emerald-600" />
-                      Tersalin
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="size-3.5 mr-1" />
-                      Salin Link
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
           </div>
         </div>
       </DialogContent>

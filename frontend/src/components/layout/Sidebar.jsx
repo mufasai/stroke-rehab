@@ -62,19 +62,19 @@ export function Sidebar() {
 
   return (
     <div className="w-64 bg-card border-r border-border min-h-screen flex flex-col">
-      <div className="p-6 border-b border-border">
+      <div className="p-6 pb-2">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 bg-primary-600 rounded-lg flex items-center justify-center text-white font-bold">
             SH
           </div>
           <div>
             <div className="font-bold text-foreground">Hand Rehab</div>
-            {/* <div className="text-xs text-muted-foreground">Stroke Therapy</div> */}
+            <div className="text-xs text-muted-foreground">Stroke Therapy</div>
           </div>
         </div>
       </div>
 
-      <div className="p-4 flex-1">
+      <div className="p-4 pt-2 flex-1">
         <nav className="space-y-1">
           {visibleMenuItems.map((item) => {
             const isActive = location.pathname === item.path

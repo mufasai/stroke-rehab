@@ -10,7 +10,7 @@ export function KinematicFeedbackBanner({
   let bgColor = 'bg-emerald-50 border-emerald-200 text-emerald-900'
   let iconColor = 'text-emerald-600'
   let Icon = CheckCircle2
-  let statusText = 'Gerakan Benar'
+  let statusText = 'Gerakan Optimal'
 
   if (quality === QUALITY_STATUS.COMPENSATORY) {
     bgColor = 'bg-rose-50 border-rose-200 text-rose-900'
@@ -26,24 +26,24 @@ export function KinematicFeedbackBanner({
 
   return (
     <div
-      className={`border rounded-xl p-3.5 flex items-center justify-between gap-3 shadow-sm transition-colors duration-200 ${bgColor}`}
+      className={`border rounded-xl p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 shadow-xs transition-colors duration-200 ${bgColor}`}
     >
-      <div className="flex items-center gap-3">
-        <div className={`p-1.5 rounded-lg bg-white/80 shadow-sm ${iconColor}`}>
-          <Icon className="h-5 w-5" />
+      <div className="flex items-start sm:items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+        <div className={`p-1.5 rounded-lg bg-white/90 shadow-xs shrink-0 mt-0.5 sm:mt-0 ${iconColor}`}>
+          <Icon className="size-5 shrink-0" />
         </div>
-        <div>
+        <div className="min-w-0 flex-1">
           <div className="text-[10px] uppercase font-bold tracking-wider opacity-75">
             Petunjuk Gerakan Langsung
           </div>
-          <div className="text-sm font-semibold">
+          <div className="text-xs sm:text-sm font-semibold leading-snug break-words">
             {feedbackMessage}
           </div>
         </div>
       </div>
 
-      <div className="hidden sm:block">
-        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-white/80 border border-current shadow-xs">
+      <div className="shrink-0 self-start sm:self-auto pl-9 sm:pl-0">
+        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-white/90 border border-current shadow-xs whitespace-nowrap inline-flex items-center">
           {statusText}
         </span>
       </div>

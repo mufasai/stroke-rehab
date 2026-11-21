@@ -4,6 +4,7 @@ import TherapySessionPage from '@/features/therapy-session/TherapySessionPage'
 import PatientsPage from '@/features/patients/PatientsPage'
 import HistoryPage from '@/features/history/HistoryPage'
 import CalibrationPage from '@/features/calibration/CalibrationPage'
+import RemoteCameraPage from '@/features/remote-camera/RemoteCameraPage'
 
 function AppRoutes() {
   const isDevMode = typeof window !== 'undefined' && localStorage.getItem('stroke_therapy_dev_mode') === 'true'
@@ -17,6 +18,7 @@ function AppRoutes() {
       <Route path="/therapy" element={<TherapySessionPage />} />
       <Route path="/history" element={<HistoryPage />} />
       <Route path="/calibration" element={<CalibrationPage />} />
+      <Route path="/camera" element={<RemoteCameraPage />} />
       <Route path="*" element={<Navigate to={defaultPath} replace />} />
     </Routes>
   )

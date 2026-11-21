@@ -280,6 +280,71 @@ export function useMediaPipeHands({
     setFps(0)
   }, [videoRef, canvasRef])
 
+  // Start session with remote video stream (e.g. from smartphone via WebRTC)
+  const startWithRemoteStream = useCallback(
+    async (remoteStream) => {
+      setCameraError(null)
+      const video = videoRef?.current
+      if (!video || !handsRef.current) return
+
+      try {
+        if (cameraRef.current) {
+          try {
+            cameraRef.current.stop()
+          } catch (e) {
+            // Ignore teardown error
+          }
+          cameraRef.current = null
+        }
+
+        video.srcObject = remoteStream
+        await video.play()
+
+        let animId = null
+        const processFrame = async () => {
+          if (
+            !isProcessingRef.current &&
+            videoRef?.current &&
+            handsRef.current &&
+            !video.paused &&
+            !video.ended
+          ) {
+            try {
+              isProcessingRef.current = true
+              const startTimestamp = performance.now()
+              await handsRef.current.send({ image: videoRef.current })
+              setLatencyMs(Math.round(performance.now() - startTimestamp))
+            } catch (err) {
+              // Frame dropped during inference
+            } finally {
+              isProcessingRef.current = false
+            }
+          }
+          animId = requestAnimationFrame(processFrame)
+        }
+        animId = requestAnimationFrame(processFrame)
+
+        cameraRef.current = {
+          stop: () => {
+            if (animId) cancelAnimationFrame(animId)
+            if (video.srcObject) {
+              const tracks = video.srcObject.getTracks()
+              tracks.forEach((track) => track.stop())
+              video.srcObject = null
+            }
+          },
+        }
+
+        setIsCameraActive(true)
+      } catch (err) {
+        console.error('Gagal memproses remote camera stream:', err)
+        setCameraError('Gagal memproses video dari kamera smartphone.')
+        setIsCameraActive(false)
+      }
+    },
+    [videoRef]
+  )
+
   return {
     isCameraActive,
     isModelLoaded,
@@ -288,6 +353,7 @@ export function useMediaPipeHands({
     availableCameras,
     cameraError,
     startCamera,
+    startWithRemoteStream,
     stopCamera,
   }
 }

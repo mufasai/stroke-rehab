@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Camera, Eye, Volume2, VideoOff, FlipHorizontal, Scan } from 'lucide-react'
+import { Camera, Eye, Volume2, VideoOff, Scan, Smartphone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export function VideoWorkspace({
@@ -16,13 +16,13 @@ export function VideoWorkspace({
   onToggleLandmarks,
   audioEnabled,
   onToggleAudio,
-  isMirrored = true,
-  onToggleMirror = () => {},
   isHandDetected = false,
   quality = 'incomplete',
   wristDeviation = 0,
   onStartCamera,
   onStopCamera,
+  onOpenPhoneConnectModal = () => {},
+  isPhoneConnected = false,
 }) {
   const [showGuide, setShowGuide] = useState(true)
 
@@ -46,17 +46,18 @@ export function VideoWorkspace({
       guideText = 'Tangan Terdeteksi (21 Titik Landmark Aktif)'
     }
   }
+
   return (
     <div className="bg-card border border-border rounded-xl p-4 shadow-sm flex flex-col space-y-3">
       {/* Video Viewport Container */}
       <div className="relative aspect-[16/10] w-full bg-slate-950 rounded-lg overflow-hidden flex items-center justify-center border border-border/80">
-        {/* HTML5 Video Element with optional mirror flip */}
+        {/* HTML5 Video Element (Permanently mirrored for intuitive patient hand feedback) */}
         <video
           ref={videoRef}
           playsInline
           muted
           autoPlay
-          style={{ transform: isMirrored ? 'scaleX(-1)' : 'none' }}
+          style={{ transform: 'scaleX(-1)' }}
           className={`absolute inset-0 w-full h-full object-cover transition-transform duration-200 ${
             isCameraActive ? 'opacity-100' : 'opacity-0'
           }`}
@@ -67,7 +68,7 @@ export function VideoWorkspace({
           ref={canvasRef}
           width={1280}
           height={720}
-          style={{ transform: isMirrored ? 'scaleX(-1)' : 'none' }}
+          style={{ transform: 'scaleX(-1)' }}
           className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10 transition-transform duration-200"
         />
 
@@ -77,23 +78,8 @@ export function VideoWorkspace({
             <div className="absolute top-3 left-3 z-20 flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-md bg-black/60 backdrop-blur-md px-2.5 py-1 text-xs font-semibold text-white">
                 <span className="size-2 rounded-full bg-rose-500 animate-pulse" />
-                LIVE STREAMING
+                {isPhoneConnected ? 'LIVE (KAMERA HP)' : 'LIVE STREAMING'}
               </span>
-
-              {/* Quick Mirror Toggle Button on video overlay */}
-              <button
-                type="button"
-                onClick={onToggleMirror}
-                className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold backdrop-blur-md transition-all border ${
-                  isMirrored
-                    ? 'bg-emerald-600/90 text-white border-emerald-400/80 shadow-xs'
-                    : 'bg-black/60 text-slate-300 border-white/20 hover:bg-black/80'
-                }`}
-                title="Klik untuk membalikkan arah kamera (mode cermin)"
-              >
-                <FlipHorizontal className="size-3.5" />
-                <span>{isMirrored ? 'Cermin: ON' : 'Cermin: OFF'}</span>
-              </button>
             </div>
 
             <div className="absolute top-3 right-3 z-20">
@@ -153,23 +139,34 @@ export function VideoWorkspace({
             </h3>
             <p className="text-xs text-slate-400 mb-4">
               {cameraError ||
-                'Aktifkan webcam untuk memulai pelacakan landmark tangan secara real-time.'}
+                'Aktifkan webcam laptop atau hubungkan kamera smartphone (HP) untuk posisi pengambilan dari atas meja.'}
             </p>
-            <Button
-              onClick={onStartCamera}
-              className="bg-primary-600 hover:bg-primary-700 text-white text-xs px-5 py-2"
-            >
-              <Camera className="h-4 w-4 mr-2" />
-              Nyalakan Kamera Terapi
-            </Button>
+            <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full max-w-sm">
+              <Button
+                onClick={onStartCamera}
+                className="w-full bg-primary-600 hover:bg-primary-700 text-white text-xs px-4 py-2 font-semibold shadow-xs"
+              >
+                <Camera className="h-4 w-4 mr-2" />
+                Nyalakan Kamera Terapi
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onOpenPhoneConnectModal}
+                className="w-full bg-slate-900/90 hover:bg-slate-800 text-emerald-400 hover:text-emerald-300 border-emerald-500/40 text-xs px-4 py-2 font-semibold shadow-xs"
+              >
+                <Smartphone className="h-4 w-4 mr-2" />
+                Hubungkan Kamera HP
+              </Button>
+            </div>
           </div>
         )}
       </div>
 
       {/* Video Control Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 pt-1 text-xs">
-        {/* Device Selection */}
-        <div className="flex items-center gap-2">
+        {/* Device Selection & Phone Connect Button */}
+        <div className="flex flex-wrap items-center gap-2">
           <label htmlFor="camera-select" className="text-muted-foreground font-medium">
             Sumber Kamera:
           </label>
@@ -177,9 +174,12 @@ export function VideoWorkspace({
             id="camera-select"
             value={selectedCameraId}
             onChange={(e) => onSelectCamera(e.target.value)}
-            className="h-8 rounded-md border border-input bg-background px-2.5 py-1 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            disabled={isPhoneConnected}
+            className="h-8 rounded-md border border-input bg-background px-2.5 py-1 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-60"
           >
-            {availableCameras.length > 0 ? (
+            {isPhoneConnected ? (
+              <option value="phone">📱 Kamera HP (Wireless Top-Down)</option>
+            ) : availableCameras.length > 0 ? (
               availableCameras.map((cam) => (
                 <option key={cam.deviceId} value={cam.deviceId}>
                   {cam.label}
@@ -189,24 +189,22 @@ export function VideoWorkspace({
               <option value="">Tidak Ada Kamera</option>
             )}
           </select>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onOpenPhoneConnectModal}
+            className="h-8 px-2.5 text-xs text-primary-700 border-primary-200 hover:bg-primary-50"
+            title="Hubungkan kamera HP secara nirkabel via QR Code"
+          >
+            <Smartphone className="size-3.5 mr-1 text-primary-600" />
+            <span>Koneksi HP</span>
+          </Button>
         </div>
 
-        {/* Visual, Audio, and Mirror Toggles */}
+        {/* Visual, Audio, and Landmark Toggles */}
         <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-          <button
-            type="button"
-            onClick={onToggleMirror}
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-colors ${
-              isMirrored
-                ? 'bg-primary-50 text-primary-800 border-primary-300 font-semibold'
-                : 'bg-background text-muted-foreground border-input hover:text-foreground'
-            }`}
-            title="Ubah arah kamera antara invers (cermin) atau kamera normal"
-          >
-            <FlipHorizontal className="size-3.5" />
-            <span>{isMirrored ? 'Invers' : 'Normal'}</span>
-          </button>
-
           <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground">
             <input
               type="checkbox"

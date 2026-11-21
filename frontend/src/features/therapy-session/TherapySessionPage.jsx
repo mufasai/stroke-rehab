@@ -9,6 +9,7 @@ import { RepetitionTracker } from './components/RepetitionTracker'
 import { CompensationMonitor } from './components/CompensationMonitor'
 import { TherapistNotesCard } from './components/TherapistNotesCard'
 import { SessionSummaryModal } from './components/SessionSummaryModal'
+import { PhoneCameraConnectModal } from './components/PhoneCameraConnectModal'
 import { useMediaPipeHands } from './hooks/useMediaPipeHands'
 import { useTherapySession } from './hooks/useTherapySession'
 import { loadCalibrationConfig } from '@/features/calibration/calibrationConfig'
@@ -29,25 +30,13 @@ export default function TherapySessionPage() {
   const [showLandmarks, setShowLandmarks] = useState(calibConfig.showLandmarks)
   const [audioEnabled, setAudioEnabled] = useState(calibConfig.audioFeedback)
   const [savedSuccessInfo, setSavedSuccessInfo] = useState(null)
+  const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false)
+  const [isPhoneConnected, setIsPhoneConnected] = useState(false)
 
-  // Camera mirroring/inversion state (defaults to true for intuitive mirror movement)
-  const [isMirrored, setIsMirrored] = useState(() => {
-    const saved = localStorage.getItem('stroke_therapy_camera_mirrored')
-    return saved !== null ? saved === 'true' : true
-  })
-
-  const handleToggleMirror = useCallback(() => {
-    setIsMirrored((prev) => {
-      const next = !prev
-      localStorage.setItem('stroke_therapy_camera_mirrored', String(next))
-      return next
-    })
-  }, [])
-
-  // Snapshot capturer callback invoked at each peak repetition
+  // Snapshot capturer callback invoked at each peak repetition (permanently mirrored)
   const handleCaptureSnapshot = useCallback(() => {
-    return captureRepetitionSnapshot(videoRef.current, canvasRef.current, isMirrored)
-  }, [isMirrored])
+    return captureRepetitionSnapshot(videoRef.current, canvasRef.current, true)
+  }, [])
 
   // Initialize session state machine
   const session = useTherapySession({
@@ -164,6 +153,14 @@ export default function TherapySessionPage() {
     session.startSession()
   }, [camera.isCameraActive, session])
 
+  const handlePhoneStreamConnected = useCallback(
+    (remoteStream) => {
+      setIsPhoneConnected(true)
+      camera.startWithRemoteStream(remoteStream)
+    },
+    [camera]
+  )
+
   return (
     <div className="p-5 max-w-[1600px] mx-auto space-y-4">
       {/* Toast Alert Banner if session was just saved */}
@@ -241,13 +238,13 @@ export default function TherapySessionPage() {
             onToggleLandmarks={setShowLandmarks}
             audioEnabled={audioEnabled}
             onToggleAudio={setAudioEnabled}
-            isMirrored={isMirrored}
-            onToggleMirror={handleToggleMirror}
             isHandDetected={session.liveMetrics.isHandDetected}
             quality={session.liveMetrics.quality}
             wristDeviation={session.liveMetrics.wristDeviation}
             onStartCamera={camera.startCamera}
             onStopCamera={camera.stopCamera}
+            onOpenPhoneConnectModal={() => setIsPhoneModalOpen(true)}
+            isPhoneConnected={isPhoneConnected}
           />
 
           <KinematicFeedbackBanner
@@ -311,6 +308,13 @@ export default function TherapySessionPage() {
         exerciseName="Finger Spread"
         history={session.repetitionHistory}
         therapistNotes={session.therapistNotes}
+      />
+
+      {/* 4. Modal Sambungan Kamera Smartphone (Nirkabel via QR Code) */}
+      <PhoneCameraConnectModal
+        isOpen={isPhoneModalOpen}
+        onClose={() => setIsPhoneModalOpen(false)}
+        onStreamConnected={handlePhoneStreamConnected}
       />
     </div>
   )

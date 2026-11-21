@@ -69,7 +69,6 @@ export function SessionHeaderBar({
         {/* Status Indicators & Top Action Buttons */}
         <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 text-xs border-t lg:border-t-0 pt-3 lg:pt-0 border-border">
           <div className="flex items-center gap-2 pr-2">
-            <Activity className="h-4 w-4 text-emerald-600" />
             <div>
               <div className="text-[10px] uppercase font-semibold text-muted-foreground">
                 Kamera

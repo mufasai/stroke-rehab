@@ -69,7 +69,7 @@ export function Sidebar() {
           </div>
           <div>
             <div className="font-bold text-foreground">Hand Rehab</div>
-            <div className="text-xs text-muted-foreground">Stroke Therapy</div>
+            {/* <div className="text-xs text-muted-foreground">Stroke Therapy</div> */}
           </div>
         </div>
       </div>

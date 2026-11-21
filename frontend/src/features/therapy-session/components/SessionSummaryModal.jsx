@@ -18,6 +18,7 @@ export function SessionSummaryModal({
   exerciseName = 'Finger Spread (Bukaan Jari)',
   history = [],
   therapistNotes = '',
+  onChangeNotes = () => {},
 }) {
   const totalReps = history.length
   const correctReps = history.filter((r) => r.quality === QUALITY_STATUS.CORRECT).length
@@ -97,15 +98,24 @@ export function SessionSummaryModal({
             </div>
           </div>
 
-          {/* Therapist Notes Summary */}
-          {therapistNotes && (
-            <div className="p-3 bg-secondary-50/50 border border-secondary-200/50 rounded-lg text-xs space-y-1">
-              <div className="font-semibold text-muted-foreground flex items-center gap-1">
-                <FileText className="h-3.5 w-3.5" /> Catatan Fisioterapis:
-              </div>
-              <p className="text-foreground italic">{therapistNotes}</p>
-            </div>
-          )}
+          {/* Therapist Notes Textarea Inside Modal */}
+          <div className="space-y-1.5 pt-1">
+            <label
+              htmlFor="modal-therapist-notes"
+              className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5"
+            >
+              <FileText className="size-3.5 text-primary-600" />
+              Catatan Observasi Fisioterapis
+            </label>
+            <textarea
+              id="modal-therapist-notes"
+              value={therapistNotes}
+              onChange={(e) => onChangeNotes(e.target.value)}
+              placeholder="Ketik catatan evaluasi klinis untuk rekam medis (contoh: Pasien mampu membuka jari stabil hingga repetisi ke-8, sedikit tremor di repetisi akhir)..."
+              rows={3}
+              className="w-full text-xs rounded-lg border border-input bg-background p-2.5 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500 resize-none"
+            />
+          </div>
         </div>
 
         <DialogFooter className="flex gap-2 sm:gap-0">

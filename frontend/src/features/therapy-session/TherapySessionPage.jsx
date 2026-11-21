@@ -7,7 +7,6 @@ import { ROMGaugeCard } from './components/ROMGaugeCard'
 import { QualityStatusCard } from './components/QualityStatusCard'
 import { RepetitionTracker } from './components/RepetitionTracker'
 import { CompensationMonitor } from './components/CompensationMonitor'
-import { TherapistNotesCard } from './components/TherapistNotesCard'
 import { SessionSummaryModal } from './components/SessionSummaryModal'
 import { PhoneCameraConnectModal } from './components/PhoneCameraConnectModal'
 import { useMediaPipeHands } from './hooks/useMediaPipeHands'
@@ -290,16 +289,10 @@ export default function TherapySessionPage() {
             isSymmetric={session.liveMetrics.isSymmetric}
             history={session.repetitionHistory}
           />
-
-          {/* Catatan Observasi Fisioterapis */}
-          <TherapistNotesCard
-            notes={session.therapistNotes}
-            onChangeNotes={session.setTherapistNotes}
-          />
         </div>
       </div>
 
-      {/* 3. Modal Ringkasan Pasca-Sesi */}
+      {/* 3. Modal Ringkasan Pasca-Sesi (termasuk Catatan Fisioterapis) */}
       <SessionSummaryModal
         isOpen={session.isSummaryModalOpen}
         onClose={() => session.setIsSummaryModalOpen(false)}
@@ -308,6 +301,7 @@ export default function TherapySessionPage() {
         exerciseName="Finger Spread"
         history={session.repetitionHistory}
         therapistNotes={session.therapistNotes}
+        onChangeNotes={session.setTherapistNotes}
       />
 
       {/* 4. Modal Sambungan Kamera Smartphone (Nirkabel via QR Code) */}

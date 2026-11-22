@@ -29,6 +29,7 @@ export function PhoneCameraConnectModal({
   const [status, setStatus] = useState('waiting') // 'waiting' | 'connecting' | 'connected' | 'error'
   const [errorMessage, setErrorMessage] = useState('')
   const peerInstanceRef = useRef(null)
+  const isConnectedRef = useRef(false)
 
   const phoneUrl =
     typeof window !== 'undefined'
@@ -39,6 +40,7 @@ export function PhoneCameraConnectModal({
     if (!isOpen) return
 
     let isMounted = true
+    isConnectedRef.current = false
     setStatus('waiting')
     setErrorMessage('')
 
@@ -57,6 +59,15 @@ export function PhoneCameraConnectModal({
       try {
         const peer = new PeerClass(desktopPeerId, {
           debug: 1,
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:stun1.l.google.com:19302' },
+              { urls: 'stun:stun2.l.google.com:19302' },
+              { urls: 'stun:stun3.l.google.com:19302' },
+              { urls: 'stun:stun4.l.google.com:19302' },
+            ],
+          },
         })
 
         peerInstanceRef.current = peer
@@ -75,11 +86,17 @@ export function PhoneCameraConnectModal({
 
           call.on('stream', (remoteStream) => {
             if (!isMounted) return
+            isConnectedRef.current = true
             setStatus('connected')
             setTimeout(() => {
-              onStreamConnected(remoteStream, { roomCode, peerId: call.peer })
+              onStreamConnected(remoteStream, {
+                roomCode,
+                peerId: call.peer,
+                peer,
+                call,
+              })
               onClose()
-            }, 600)
+            }, 500)
           })
 
           call.on('error', (err) => {
@@ -93,9 +110,8 @@ export function PhoneCameraConnectModal({
 
         peer.on('error', (err) => {
           console.error('PeerJS error on desktop:', err)
-          if (isMounted && status !== 'connected') {
+          if (isMounted && !isConnectedRef.current) {
             if (err.type === 'unavailable-id') {
-              // Retry with random suffix if collision
               return
             }
             setErrorMessage('Gagal membuka saluran sinyal nirkabel. Coba tutup dan buka kembali.')
@@ -117,7 +133,8 @@ export function PhoneCameraConnectModal({
     return () => {
       isMounted = false
       clearTimeout(timeout)
-      if (peerInstanceRef.current && status !== 'connected') {
+      // Only destroy peer if modal was closed before a call was successfully connected
+      if (peerInstanceRef.current && !isConnectedRef.current) {
         try {
           peerInstanceRef.current.destroy()
         } catch (e) {

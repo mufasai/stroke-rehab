@@ -36,6 +36,8 @@ export default function TherapySessionPage() {
   const [savedSuccessInfo, setSavedSuccessInfo] = useState(null)
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false)
   const [isPhoneConnected, setIsPhoneConnected] = useState(false)
+  const activePhonePeerRef = useRef(null)
+  const activePhoneCallRef = useRef(null)
 
   // Snapshot capturer callback invoked at each peak repetition (permanently mirrored)
   const handleCaptureSnapshot = useCallback(() => {
@@ -152,9 +154,28 @@ export default function TherapySessionPage() {
     session.startSession()
   }, [camera.isCameraActive, session])
 
+  const handleStopCamera = useCallback(() => {
+    camera.stopCamera()
+    if (activePhoneCallRef.current) {
+      try {
+        activePhoneCallRef.current.close()
+      } catch (e) {}
+      activePhoneCallRef.current = null
+    }
+    if (activePhonePeerRef.current) {
+      try {
+        activePhonePeerRef.current.destroy()
+      } catch (e) {}
+      activePhonePeerRef.current = null
+    }
+    setIsPhoneConnected(false)
+  }, [camera])
+
   const handlePhoneStreamConnected = useCallback(
-    (remoteStream) => {
+    (remoteStream, { roomCode, peerId, peer, call } = {}) => {
       setIsPhoneConnected(true)
+      if (peer) activePhonePeerRef.current = peer
+      if (call) activePhoneCallRef.current = call
       camera.startWithRemoteStream(remoteStream)
     },
     [camera]
@@ -256,7 +277,7 @@ export default function TherapySessionPage() {
             onToggleInvertDetection={session.toggleInvertHandDetection}
             invertHandDetection={session.invertHandDetection}
             onStartCamera={camera.startCamera}
-            onStopCamera={camera.stopCamera}
+            onStopCamera={handleStopCamera}
             onOpenPhoneConnectModal={() => setIsPhoneModalOpen(true)}
             isPhoneConnected={isPhoneConnected}
           />

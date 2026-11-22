@@ -102,11 +102,25 @@ export function RemoteCameraPage() {
         }
 
         const phonePeerId = `rehab-phone-${targetRoom}-${Math.random().toString(36).substring(2, 6)}`
-        const peer = new PeerClass(phonePeerId, { debug: 1 })
+        const peer = new PeerClass(phonePeerId, {
+          debug: 1,
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:stun1.l.google.com:19302' },
+              { urls: 'stun:stun2.l.google.com:19302' },
+              { urls: 'stun:stun3.l.google.com:19302' },
+              { urls: 'stun:stun4.l.google.com:19302' },
+            ],
+          },
+        })
         peerRef.current = peer
 
         peer.on('open', () => {
           const desktopPeerId = `rehab-desktop-${targetRoom}`
+          localStream.getVideoTracks().forEach((track) => {
+            track.enabled = true
+          })
           const call = peer.call(desktopPeerId, localStream)
           callRef.current = call
 

@@ -298,7 +298,31 @@ export function useMediaPipeHands({
         }
 
         video.srcObject = remoteStream
-        await video.play()
+        video.muted = true
+        video.playsInline = true
+        video.setAttribute('playsinline', 'true')
+        video.setAttribute('muted', 'true')
+
+        const startPlaying = async () => {
+          try {
+            await video.play()
+          } catch (e) {
+            console.warn('Autoplay remote stream error:', e)
+          }
+        }
+
+        video.onloadedmetadata = startPlaying
+        video.oncanplay = startPlaying
+
+        const videoTracks = remoteStream?.getVideoTracks?.() || []
+        if (videoTracks.length > 0) {
+          videoTracks[0].enabled = true
+          videoTracks[0].onunmute = () => {
+            startPlaying()
+          }
+        }
+
+        await startPlaying()
 
         let animId = null
         const processFrame = async () => {
@@ -307,7 +331,8 @@ export function useMediaPipeHands({
             videoRef?.current &&
             handsRef.current &&
             !video.paused &&
-            !video.ended
+            !video.ended &&
+            video.videoWidth > 0
           ) {
             try {
               isProcessingRef.current = true

@@ -61,11 +61,18 @@ export function useTherapySession({
   const patientRef = useRef(patient)
   patientRef.current = patient
 
-  const [invertHandDetection, setInvertHandDetection] = useState(() => {
-    return localStorage.getItem('stroke_therapy_invert_hand') === 'true'
-  })
-  const invertRef = useRef(invertHandDetection)
+  const [invertHandDetection, setInvertHandDetection] = useState(false)
+  const invertRef = useRef(false)
   invertRef.current = invertHandDetection
+
+  useEffect(() => {
+    // Clear any previous stale inversion from localStorage
+    try {
+      localStorage.removeItem('stroke_therapy_invert_hand')
+    } catch (e) {
+      // Ignore
+    }
+  }, [])
 
   useEffect(() => {
     if (patientData) {
@@ -96,7 +103,6 @@ export function useTherapySession({
   const toggleInvertHandDetection = useCallback(() => {
     setInvertHandDetection((prev) => {
       const next = !prev
-      localStorage.setItem('stroke_therapy_invert_hand', String(next))
       invertRef.current = next
       return next
     })

@@ -24,9 +24,13 @@ export function detectHandedness(landmarks, multiHandedness = null, invert = fal
   }
 
   // 1. MediaPipe Handedness Classification (Primary)
-  // MediaPipe Hands multiHandedness:
-  // In an unmirrored camera stream, MediaPipe outputs 'Right' for the subject's Right Hand ('Kanan')
-  // and 'Left' for the subject's Left Hand ('Kiri').
+  // According to official MediaPipe documentation:
+  // MediaPipe hands assumes the input image is horizontally mirrored (selfie mode).
+  // In an unmirrored input stream (such as standard HTML5 video from getUserMedia):
+  // - User's physical Right hand ('Kanan') -> MediaPipe outputs rawLabel = 'Left'
+  // - User's physical Left hand ('Kiri')  -> MediaPipe outputs rawLabel = 'Right'
+  // Therefore, as per MediaPipe specs, we swap the handedness:
+  // 'Left' maps to 'Kanan', and 'Right' maps to 'Kiri'.
   let mpSide = null
   let mpScore = 0
   let rawLabel = null
@@ -35,35 +39,18 @@ export function detectHandedness(landmarks, multiHandedness = null, invert = fal
     rawLabel = multiHandedness[0].label
     mpScore = multiHandedness[0].score || 0.9
     const normalized = String(rawLabel).toLowerCase()
-    mpSide = normalized === 'right' ? 'Kanan' : 'Kiri'
+    mpSide = normalized === 'left' ? 'Kanan' : 'Kiri'
   }
 
   // 2. 2D Anatomical Landmark Relative Position Verification
   // In raw video coordinates from webcam facing user (x: 0 left to 1 right, y: 0 top to 1 bottom):
-  // Wrist is at bottom (larger y), fingers at top (smaller y).
-  const w = landmarks[0]   // Wrist
-  const m = landmarks[9]   // Middle finger MCP
-  const i = landmarks[5]   // Index finger MCP
+  // When facing camera:
+  // - Physical Right Hand is on camera's left side: thumb points inward to center (t.x > p.x) -> 'Kanan'
+  // - Physical Left Hand is on camera's right side: thumb points inward to center (t.x < p.x) -> 'Kiri'
   const p = landmarks[17]  // Pinky finger MCP
   const t = landmarks[4]   // Thumb tip
 
-  // 2D cross product of longitudinal palm vector (wrist -> middle) and transverse knuckle vector (pinky -> index)
-  const u_x = m.x - w.x
-  const u_y = m.y - w.y
-  const v_x = i.x - p.x
-  const v_y = i.y - p.y
-  const normalZ = u_x * v_y - u_y * v_x
-
-  let anatSide
-  if (normalZ <= 0) {
-    // Palm facing camera:
-    // User's Right Hand: thumb points towards body center (to the right side of hand in camera frame, t.x > p.x) -> 'Kanan'
-    // User's Left Hand: thumb points towards body center (to the left side of hand in camera frame, t.x < p.x) -> 'Kiri'
-    anatSide = t.x > p.x ? 'Kanan' : 'Kiri'
-  } else {
-    // Back of hand facing camera:
-    anatSide = t.x < p.x ? 'Kanan' : 'Kiri'
-  }
+  const anatSide = t.x > p.x ? 'Kanan' : 'Kiri'
 
   // Resolution:
   // Use MediaPipe's deep neural classifier if available, else fallback to 2D geometry

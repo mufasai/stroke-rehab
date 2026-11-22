@@ -58,22 +58,38 @@ export function useTherapySession({
   },
 }) {
   const [patient, setPatient] = useState(patientData)
+  const patientRef = useRef(patient)
+  patientRef.current = patient
+
   const [invertHandDetection, setInvertHandDetection] = useState(() => {
     return localStorage.getItem('stroke_therapy_invert_hand') === 'true'
   })
+  const invertRef = useRef(invertHandDetection)
+  invertRef.current = invertHandDetection
 
   useEffect(() => {
     if (patientData) {
       setPatient(patientData)
+      patientRef.current = patientData
       smoothHandVoteRef.current = null
     }
   }, [patientData?.id, patientData?.rmNumber, patientData?.affectedHand])
 
+  const setPatientData = useCallback((newPatient) => {
+    setPatient(newPatient)
+    patientRef.current = newPatient
+    smoothHandVoteRef.current = null
+  }, [])
+
   const toggleAffectedHand = useCallback(() => {
-    setPatient((prev) => ({
-      ...prev,
-      affectedHand: prev.affectedHand === 'Kanan' ? 'Kiri' : 'Kanan',
-    }))
+    setPatient((prev) => {
+      const next = {
+        ...prev,
+        affectedHand: prev.affectedHand === 'Kanan' ? 'Kiri' : 'Kanan',
+      }
+      patientRef.current = next
+      return next
+    })
     smoothHandVoteRef.current = null
   }, [])
 
@@ -81,6 +97,7 @@ export function useTherapySession({
     setInvertHandDetection((prev) => {
       const next = !prev
       localStorage.setItem('stroke_therapy_invert_hand', String(next))
+      invertRef.current = next
       return next
     })
     smoothHandVoteRef.current = null
@@ -212,6 +229,9 @@ export function useTherapySession({
         rawEval = evaluateFistCurl(landmarks, evalOptions)
       }
 
+      const currentPatient = patientRef.current || patient
+      const currentInvert = invertRef.current ?? invertHandDetection
+
       if (!rawEval.isHandDetected) {
         smoothRomRef.current = null
         smoothWristDevRef.current = null
@@ -222,7 +242,7 @@ export function useTherapySession({
         setLiveMetrics({
           ...rawEval,
           detectedHand: null,
-          affectedHand: patient.affectedHand,
+          affectedHand: currentPatient.affectedHand,
           isCorrectHand: true,
           isWrongHand: false,
           handConfidence: 0,
@@ -231,7 +251,7 @@ export function useTherapySession({
       }
 
       // Anatomical handedness detection
-      const handInfo = detectHandedness(landmarks, results?.multiHandedness, invertHandDetection)
+      const handInfo = detectHandedness(landmarks, results?.multiHandedness, currentInvert)
       const currentVote = handInfo.isRight ? 1 : -1
       smoothHandVoteRef.current =
         smoothHandVoteRef.current === null
@@ -239,7 +259,7 @@ export function useTherapySession({
           : smoothHandVoteRef.current * 0.72 + currentVote * 0.28
 
       const stableHand = smoothHandVoteRef.current >= 0 ? 'Kanan' : 'Kiri'
-      const isCorrectHand = stableHand === patient.affectedHand
+      const isCorrectHand = stableHand === currentPatient.affectedHand
       const isWrongHand = !isCorrectHand
 
       latestRawHandAngleRef.current = rawEval.rawHandAngle
@@ -276,7 +296,7 @@ export function useTherapySession({
         stateRef.current.neutralStartTime = 0
         setHoldProgress(0)
 
-        const wrongHandMsg = `⚠️ Terdeteksi Tangan ${stableHand}! Program pasien (${patient.name}) adalah Tangan ${patient.affectedHand}. Mohon gunakan Tangan ${patient.affectedHand}.`
+        const wrongHandMsg = `⚠️ Terdeteksi Tangan ${stableHand}! Program pasien (${currentPatient.name}) adalah Tangan ${currentPatient.affectedHand}. Mohon gunakan Tangan ${currentPatient.affectedHand}.`
 
         setLiveMetrics({
           ...rawEval,
@@ -285,7 +305,7 @@ export function useTherapySession({
           quality: 'wrong_hand',
           feedbackMessage: wrongHandMsg,
           detectedHand: stableHand,
-          affectedHand: patient.affectedHand,
+          affectedHand: currentPatient.affectedHand,
           isCorrectHand: false,
           isWrongHand: true,
           handConfidence: handInfo.confidence,
@@ -470,6 +490,11 @@ export function useTherapySession({
         wristDeviation: smoothedWristDev,
         quality: smoothedQuality,
         feedbackMessage,
+        detectedHand: stableHand,
+        affectedHand: currentPatient.affectedHand,
+        isCorrectHand: true,
+        isWrongHand: false,
+        handConfidence: handInfo.confidence,
       })
     },
     [sessionStatus, exerciseType, targetRepetitions, audioFeedbackEnabled]
@@ -510,7 +535,7 @@ export function useTherapySession({
 
   return {
     patientData: patient,
-    setPatientData: setPatient,
+    setPatientData,
     toggleAffectedHand,
     invertHandDetection,
     toggleInvertHandDetection,

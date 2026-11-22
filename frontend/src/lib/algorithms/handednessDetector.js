@@ -24,10 +24,9 @@ export function detectHandedness(landmarks, multiHandedness = null, invert = fal
   }
 
   // 1. MediaPipe Handedness Classification (Primary)
-  // In a front webcam (selfie camera without raw mirror before inference):
-  // User's physical Right Hand -> MediaPipe outputs rawLabel = 'Left'
-  // User's physical Left Hand  -> MediaPipe outputs rawLabel = 'Right'
-  // Therefore: 'Left' maps to 'Kanan', 'Right' maps to 'Kiri'.
+  // MediaPipe Hands multiHandedness:
+  // In an unmirrored camera stream, MediaPipe outputs 'Right' for the subject's Right Hand ('Kanan')
+  // and 'Left' for the subject's Left Hand ('Kiri').
   let mpSide = null
   let mpScore = 0
   let rawLabel = null
@@ -35,11 +34,12 @@ export function detectHandedness(landmarks, multiHandedness = null, invert = fal
   if (multiHandedness && multiHandedness.length > 0) {
     rawLabel = multiHandedness[0].label
     mpScore = multiHandedness[0].score || 0.9
-    mpSide = rawLabel === 'Left' ? 'Kanan' : 'Kiri'
+    const normalized = String(rawLabel).toLowerCase()
+    mpSide = normalized === 'right' ? 'Kanan' : 'Kiri'
   }
 
   // 2. 2D Anatomical Landmark Relative Position Verification
-  // In raw video coordinates from webcam facing user:
+  // In raw video coordinates from webcam facing user (x: 0 left to 1 right, y: 0 top to 1 bottom):
   // Wrist is at bottom (larger y), fingers at top (smaller y).
   const w = landmarks[0]   // Wrist
   const m = landmarks[9]   // Middle finger MCP
@@ -47,7 +47,7 @@ export function detectHandedness(landmarks, multiHandedness = null, invert = fal
   const p = landmarks[17]  // Pinky finger MCP
   const t = landmarks[4]   // Thumb tip
 
-  // 2D cross product of longitudinal palm vector and transverse knuckle vector
+  // 2D cross product of longitudinal palm vector (wrist -> middle) and transverse knuckle vector (pinky -> index)
   const u_x = m.x - w.x
   const u_y = m.y - w.y
   const v_x = i.x - p.x
@@ -57,12 +57,12 @@ export function detectHandedness(landmarks, multiHandedness = null, invert = fal
   let anatSide
   if (normalZ <= 0) {
     // Palm facing camera:
-    // Right Hand: thumb.x < pinky.x in raw frame -> 'Kanan'
-    // Left Hand: thumb.x > pinky.x in raw frame -> 'Kiri'
-    anatSide = t.x < p.x ? 'Kanan' : 'Kiri'
+    // User's Right Hand: thumb points towards body center (to the right side of hand in camera frame, t.x > p.x) -> 'Kanan'
+    // User's Left Hand: thumb points towards body center (to the left side of hand in camera frame, t.x < p.x) -> 'Kiri'
+    anatSide = t.x > p.x ? 'Kanan' : 'Kiri'
   } else {
     // Back of hand facing camera:
-    anatSide = t.x > p.x ? 'Kanan' : 'Kiri'
+    anatSide = t.x < p.x ? 'Kanan' : 'Kiri'
   }
 
   // Resolution:

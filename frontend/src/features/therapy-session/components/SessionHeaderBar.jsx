@@ -68,7 +68,10 @@ export function SessionHeaderBar({
                         value={p.rmNumber || p.id}
                         className="text-sm bg-card text-foreground"
                       >
-                        {p.name} ({p.rmNumber}) — Tangan {p.affectedHand}
+                        {p.name} ({p.rmNumber}) — Tangan{' '}
+                        {p.rmNumber === selectedPatientId || p.id === selectedPatientId
+                          ? affectedHand
+                          : p.affectedHand}
                       </option>
                     ))}
                   </select>

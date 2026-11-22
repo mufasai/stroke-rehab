@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Camera, Eye, Volume2, VideoOff, Scan, Smartphone } from 'lucide-react'
+import { Camera, Eye, Volume2, VideoOff, Scan, Smartphone, ArrowLeftRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export function VideoWorkspace({
@@ -22,6 +22,8 @@ export function VideoWorkspace({
   detectedHand = null,
   affectedHand = 'Kanan',
   isWrongHand = false,
+  onToggleInvertDetection = () => {},
+  invertHandDetection = false,
   onStartCamera,
   onStopCamera,
   onOpenPhoneConnectModal = () => {},
@@ -116,10 +118,16 @@ export function VideoWorkspace({
                   </span>
                 </div>
 
-                <div className="flex justify-between items-end text-[10px] font-mono">
-                  <span className="bg-black/75 text-white/80 px-2 py-0.5 rounded border border-white/20">
-                    {detectedHand ? `Tangan Terdeteksi: ${detectedHand}` : 'Telapak Menghadap Kamera'}
-                  </span>
+                <div className="flex justify-between items-end text-[10px] font-mono pointer-events-auto">
+                  <button
+                    type="button"
+                    onClick={onToggleInvertDetection}
+                    className="bg-black/75 hover:bg-black/95 text-white/90 px-2 py-0.5 rounded border border-white/20 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                    title="Klik untuk membalik deteksi jika tangan terbaca terbalik"
+                  >
+                    <span>{detectedHand ? `Tangan Terdeteksi: ${detectedHand}` : 'Telapak Menghadap Kamera'}</span>
+                    <ArrowLeftRight className="size-2.5 text-cyan-400" />
+                  </button>
                   <span
                     className={`px-2 py-0.5 rounded border backdrop-blur-md font-semibold transition-colors ${
                       isHandDetected
@@ -238,6 +246,20 @@ export function VideoWorkspace({
             <Volume2 className="h-3.5 w-3.5" />
             <span>Audio Chime</span>
           </label>
+
+          <button
+            type="button"
+            onClick={onToggleInvertDetection}
+            className={`flex items-center gap-1.5 text-xs py-1 px-2.5 rounded border transition-colors cursor-pointer active:scale-95 ${
+              invertHandDetection
+                ? 'bg-amber-50 border-amber-300 text-amber-900 font-semibold shadow-xs'
+                : 'bg-background hover:bg-secondary-100 border-input text-muted-foreground hover:text-foreground'
+            }`}
+            title="Balik arah deteksi tangan Kanan / Kiri jika posisi kamera terbalik"
+          >
+            <ArrowLeftRight className="size-3.5 text-primary-600" />
+            <span>{invertHandDetection ? 'Deteksi: Dibalik' : 'Balik Deteksi'}</span>
+          </button>
 
           {isCameraActive && (
             <Button

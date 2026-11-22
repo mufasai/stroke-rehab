@@ -253,6 +253,8 @@ export default function TherapySessionPage() {
             detectedHand={session.liveMetrics.detectedHand}
             affectedHand={session.patientData.affectedHand}
             isWrongHand={session.liveMetrics.isWrongHand}
+            onToggleInvertDetection={session.toggleInvertHandDetection}
+            invertHandDetection={session.invertHandDetection}
             onStartCamera={camera.startCamera}
             onStopCamera={camera.stopCamera}
             onOpenPhoneConnectModal={() => setIsPhoneModalOpen(true)}

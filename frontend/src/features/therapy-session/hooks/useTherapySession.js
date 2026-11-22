@@ -58,6 +58,9 @@ export function useTherapySession({
   },
 }) {
   const [patient, setPatient] = useState(patientData)
+  const [invertHandDetection, setInvertHandDetection] = useState(() => {
+    return localStorage.getItem('stroke_therapy_invert_hand') === 'true'
+  })
 
   useEffect(() => {
     if (patientData) {
@@ -71,6 +74,15 @@ export function useTherapySession({
       ...prev,
       affectedHand: prev.affectedHand === 'Kanan' ? 'Kiri' : 'Kanan',
     }))
+    smoothHandVoteRef.current = null
+  }, [])
+
+  const toggleInvertHandDetection = useCallback(() => {
+    setInvertHandDetection((prev) => {
+      const next = !prev
+      localStorage.setItem('stroke_therapy_invert_hand', String(next))
+      return next
+    })
     smoothHandVoteRef.current = null
   }, [])
 
@@ -219,7 +231,7 @@ export function useTherapySession({
       }
 
       // Anatomical handedness detection
-      const handInfo = detectHandedness(landmarks, results?.multiHandedness)
+      const handInfo = detectHandedness(landmarks, results?.multiHandedness, invertHandDetection)
       const currentVote = handInfo.isRight ? 1 : -1
       smoothHandVoteRef.current =
         smoothHandVoteRef.current === null
@@ -500,6 +512,8 @@ export function useTherapySession({
     patientData: patient,
     setPatientData: setPatient,
     toggleAffectedHand,
+    invertHandDetection,
+    toggleInvertHandDetection,
     sessionStatus,
     sessionPhase,
     holdProgress,

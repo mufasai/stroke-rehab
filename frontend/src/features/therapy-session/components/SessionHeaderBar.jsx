@@ -1,7 +1,7 @@
 import React from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Cpu, Hand, CheckCheck, Play, Pause, XCircle, ArrowLeftRight } from 'lucide-react'
+import { Cpu, Hand, CheckCheck, Play, Pause, XCircle, ArrowLeftRight, ChevronDown } from 'lucide-react'
 
 export function SessionHeaderBar({
   patientName = 'Tn. Budi Santoso',
@@ -55,11 +55,11 @@ export function SessionHeaderBar({
               </span>
 
               {patientList && patientList.length > 0 && onSelectPatient ? (
-                <div className="relative inline-flex items-center">
+                <div className="relative inline-flex items-center group">
                   <select
                     value={selectedPatientId}
                     onChange={(e) => onSelectPatient(e.target.value)}
-                    className="font-bold text-base sm:text-lg text-foreground bg-transparent border-b-2 border-dotted border-primary-500 hover:border-primary-700 focus:outline-none cursor-pointer pr-4 appearance-none py-0.5"
+                    className="font-bold text-base sm:text-lg text-foreground bg-transparent border-none outline-none focus:outline-none cursor-pointer pr-5 appearance-none py-0.5 hover:text-primary-700 transition-colors"
                     title="Pilih pasien untuk sesi terapi"
                   >
                     {patientList.map((p) => (
@@ -68,13 +68,11 @@ export function SessionHeaderBar({
                         value={p.rmNumber || p.id}
                         className="text-sm bg-card text-foreground"
                       >
-                        {p.name} ({p.rmNumber}) — Tangan{' '}
-                        {p.rmNumber === selectedPatientId || p.id === selectedPatientId
-                          ? affectedHand
-                          : p.affectedHand}
+                        {p.name}
                       </option>
                     ))}
                   </select>
+                  <ChevronDown className="size-4 text-muted-foreground/70 group-hover:text-primary-700 pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 transition-colors" />
                 </div>
               ) : (
                 <h2 className="text-base sm:text-lg font-bold text-foreground">

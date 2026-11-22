@@ -62,6 +62,7 @@ export function useTherapySession({
   useEffect(() => {
     if (patientData) {
       setPatient(patientData)
+      smoothHandVoteRef.current = null
     }
   }, [patientData?.id, patientData?.rmNumber, patientData?.affectedHand])
 
@@ -70,6 +71,7 @@ export function useTherapySession({
       ...prev,
       affectedHand: prev.affectedHand === 'Kanan' ? 'Kiri' : 'Kanan',
     }))
+    smoothHandVoteRef.current = null
   }, [])
 
   // 'ready' | 'running' | 'paused' | 'finished'

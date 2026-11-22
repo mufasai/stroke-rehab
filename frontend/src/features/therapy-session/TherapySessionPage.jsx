@@ -182,7 +182,7 @@ export default function TherapySessionPage() {
   )
 
   return (
-    <div className="p-5 max-w-[1600px] mx-auto space-y-4">
+    <div className="p-3 sm:p-5 max-w-[1600px] mx-auto space-y-3 sm:space-y-4 min-w-0">
       {/* Toast Alert Banner if session was just saved */}
       {savedSuccessInfo && (
         <div className="rounded-xl bg-emerald-50 border border-emerald-300 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm animate-fade-in">

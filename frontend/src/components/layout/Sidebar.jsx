@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useDeviceInfo } from '@/hooks/useDeviceInfo'
-import { Code2, Sparkles } from 'lucide-react'
+import { Code2, Sparkles, X } from 'lucide-react'
 
 const MENU_ITEMS = [
   {
@@ -33,7 +33,7 @@ const MENU_ITEMS = [
   }
 ]
 
-export function Sidebar() {
+export function Sidebar({ onCloseMobile, isMobile = false }) {
   const location = useLocation()
   const navigate = useNavigate()
   const { os, architecture } = useDeviceInfo()
@@ -61,9 +61,9 @@ export function Sidebar() {
     : MENU_ITEMS.filter((item) => item.id === 'therapy')
 
   return (
-    <div className="w-64 bg-card border-r border-border min-h-screen flex flex-col">
+    <div className="w-full h-full bg-card border-r border-border min-h-screen flex flex-col">
       {/* Brand Header (Tinggi 73px sejajar dengan navbar Header) */}
-      <div className="h-[73px] px-6 border-b border-border flex items-center shrink-0">
+      <div className="h-[73px] px-6 border-b border-border flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 bg-primary-600 rounded-lg flex items-center justify-center text-white font-bold shrink-0">
             SH
@@ -73,6 +73,17 @@ export function Sidebar() {
             <div className="text-xs text-muted-foreground mt-0.5">Stroke Therapy</div>
           </div>
         </div>
+
+        {isMobile && (
+          <button
+            type="button"
+            onClick={onCloseMobile}
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary-100 transition-colors md:hidden"
+            title="Tutup Menu"
+          >
+            <X className="size-5" />
+          </button>
+        )}
       </div>
 
       {/* Navigation Menu */}
@@ -85,6 +96,9 @@ export function Sidebar() {
               <Link
                 key={item.id}
                 to={item.path}
+                onClick={() => {
+                  if (onCloseMobile) onCloseMobile()
+                }}
                 className={`
                   flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
                   ${isActive

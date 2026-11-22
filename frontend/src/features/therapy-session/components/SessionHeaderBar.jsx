@@ -110,7 +110,7 @@ export function SessionHeaderBar({
         </div>
 
         {/* Indikator Telemetri & Tombol Aksi */}
-        <div className="flex items-center flex-wrap sm:flex-nowrap gap-2.5 sm:gap-3 text-xs border-t xl:border-t-0 pt-2.5 xl:pt-0 border-border shrink-0 justify-between sm:justify-end">
+        <div className="flex items-center flex-wrap gap-2 sm:gap-3 text-xs border-t xl:border-t-0 pt-2.5 xl:pt-0 border-border w-full xl:w-auto justify-between sm:justify-end">
           {/* Telemetri Kamera & Respons */}
           <div className="flex items-center gap-3 bg-secondary-50/70 border border-border/80 px-3 py-1.5 rounded-lg shrink-0">
             

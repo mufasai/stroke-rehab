@@ -33,7 +33,7 @@ export function RepetitionTracker({
         </div>
 
         {/* 10 Repetition Status Badges */}
-        <div className="grid grid-cols-10 gap-1.5 pt-1">
+        <div className="grid grid-cols-5 sm:grid-cols-10 gap-1.5 pt-1">
           {Array.from({ length: targetReps }).map((_, index) => {
             const repIndex = index + 1
             const repData = history.find((h) => h.repNumber === repIndex)

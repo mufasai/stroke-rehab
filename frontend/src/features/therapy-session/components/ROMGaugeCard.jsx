@@ -33,7 +33,7 @@ export function ROMGaugeCard({
   return (
     <Card className="shadow-xs border-border">
       <CardContent className="p-4 space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               Rentang Bukaan Jari (ROM)

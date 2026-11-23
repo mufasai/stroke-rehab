@@ -57,9 +57,15 @@ export function VideoWorkspace({
   }
 
   return (
-    <div className="bg-card border border-border rounded-xl p-4 shadow-sm flex flex-col space-y-3">
+    <div className="bg-card border border-border rounded-xl p-3 sm:p-4 shadow-sm flex flex-col space-y-3 min-w-0">
       {/* Video Viewport Container */}
-      <div className="relative aspect-[16/10] w-full bg-slate-950 rounded-lg overflow-hidden flex items-center justify-center border border-border/80">
+      <div
+        className={`relative w-full rounded-lg overflow-hidden flex items-center justify-center border border-border/80 bg-slate-950 transition-all ${
+          isCameraActive
+            ? 'aspect-[16/10]'
+            : 'min-h-[340px] sm:min-h-[380px] aspect-[4/3] sm:aspect-[16/10]'
+        }`}
+      >
         {/* HTML5 Video Element (Permanently mirrored for intuitive patient hand feedback) */}
         <video
           ref={videoRef}
@@ -151,33 +157,33 @@ export function VideoWorkspace({
 
         {/* Fallback Display When Camera Is Off or Errored */}
         {!isCameraActive && (
-          <div className="relative z-20 flex flex-col items-center justify-center p-6 text-center max-w-md">
-            <div className="h-14 w-14 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 mb-3">
-              <VideoOff className="h-7 w-7" />
+          <div className="relative z-20 flex flex-col items-center justify-center p-4 sm:p-6 text-center max-w-md w-full">
+            <div className="size-11 sm:size-14 rounded-full bg-slate-800/90 flex items-center justify-center text-slate-400 mb-2.5 sm:mb-3 shadow-xs">
+              <VideoOff className="size-5 sm:size-7" />
             </div>
-            <h3 className="text-base font-semibold text-white mb-1">
+            <h3 className="text-base sm:text-lg font-bold text-white mb-1">
               Kamera Belum Aktif
             </h3>
-            <p className="text-xs text-slate-400 mb-4">
+            <p className="text-[11px] sm:text-xs text-slate-400 mb-3 sm:mb-4 max-w-xs sm:max-w-sm leading-relaxed">
               {cameraError ||
                 'Aktifkan webcam laptop atau hubungkan kamera smartphone (HP) untuk posisi pengambilan dari atas meja.'}
             </p>
-            <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full max-w-sm">
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-2.5 w-full max-w-sm">
               <Button
                 onClick={onStartCamera}
-                className="w-full bg-primary-600 hover:bg-primary-700 text-white text-xs px-4 py-2 font-semibold shadow-xs"
+                className="w-full bg-primary-600 hover:bg-primary-700 text-white text-xs px-3 sm:px-4 py-2 font-semibold shadow-xs h-9 cursor-pointer"
               >
-                <Camera className="h-4 w-4 mr-2" />
-                Nyalakan Kamera Terapi
+                <Camera className="h-4 w-4 mr-2 shrink-0" />
+                <span>Nyalakan Kamera Terapi</span>
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 onClick={onOpenPhoneConnectModal}
-                className="w-full bg-slate-900/90 hover:bg-slate-800 text-emerald-400 hover:text-emerald-300 border-emerald-500/40 text-xs px-4 py-2 font-semibold shadow-xs"
+                className="w-full bg-slate-900/90 hover:bg-slate-800 text-emerald-400 hover:text-emerald-300 border-emerald-500/40 text-xs px-3 sm:px-4 py-2 font-semibold shadow-xs h-9 cursor-pointer"
               >
-                <Smartphone className="h-4 w-4 mr-2" />
-                Hubungkan Kamera HP
+                <Smartphone className="h-4 w-4 mr-2 shrink-0" />
+                <span>Hubungkan Kamera HP</span>
               </Button>
             </div>
           </div>
@@ -185,10 +191,10 @@ export function VideoWorkspace({
       </div>
 
       {/* Video Control Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-1 text-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5 sm:gap-3 pt-1 text-xs">
         {/* Device Selection & Phone Connect Button */}
-        <div className="flex flex-wrap items-center gap-2">
-          <label htmlFor="camera-select" className="text-muted-foreground font-medium">
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <label htmlFor="camera-select" className="text-muted-foreground font-medium shrink-0">
             Sumber Kamera:
           </label>
           <select
@@ -196,7 +202,7 @@ export function VideoWorkspace({
             value={selectedCameraId}
             onChange={(e) => onSelectCamera(e.target.value)}
             disabled={isPhoneConnected}
-            className="h-8 rounded-md border border-input bg-background px-2.5 py-1 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-60"
+            className="h-8 rounded-md border border-input bg-background px-2.5 py-1 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-60 flex-1 md:flex-initial"
           >
             {isPhoneConnected ? (
               <option value="phone">📱 Kamera HP (Wireless Top-Down)</option>
@@ -213,8 +219,8 @@ export function VideoWorkspace({
         </div>
 
         {/* Visual, Audio, and Landmark Toggles */}
-        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-          <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground">
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+          <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground shrink-0 select-none">
             <input
               type="checkbox"
               checked={showGuide}
@@ -225,7 +231,7 @@ export function VideoWorkspace({
             <span>Kotak Panduan</span>
           </label>
 
-          <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground">
+          <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground shrink-0 select-none">
             <input
               type="checkbox"
               checked={showLandmarks}
@@ -236,7 +242,7 @@ export function VideoWorkspace({
             <span>Landmarks</span>
           </label>
 
-          <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground">
+          <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground shrink-0 select-none">
             <input
               type="checkbox"
               checked={audioEnabled}
@@ -250,7 +256,7 @@ export function VideoWorkspace({
           <button
             type="button"
             onClick={onToggleInvertDetection}
-            className={`flex items-center gap-1.5 text-xs py-1 px-2.5 rounded border transition-colors cursor-pointer active:scale-95 ${
+            className={`flex items-center gap-1.5 text-xs py-1 px-2.5 rounded border transition-colors cursor-pointer active:scale-95 shrink-0 ${
               invertHandDetection
                 ? 'bg-amber-50 border-amber-300 text-amber-900 font-semibold shadow-xs'
                 : 'bg-background hover:bg-secondary-100 border-input text-muted-foreground hover:text-foreground'
@@ -266,7 +272,7 @@ export function VideoWorkspace({
               variant="outline"
               size="sm"
               onClick={onStopCamera}
-              className="h-7 text-xs text-muted-foreground hover:text-destructive"
+              className="h-7 text-xs text-muted-foreground hover:text-destructive shrink-0"
             >
               Hentikan Kamera
             </Button>
